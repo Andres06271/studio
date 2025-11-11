@@ -29,7 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Bot, BrainCircuit, ShieldCheck, Zap } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/componentsui/skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -221,7 +221,7 @@ export default function RiskAssessmentPage() {
                     )}
                     {!loading && !result && (
                         <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-                          <AlertTitle className="text-blue-800 dark:text-blue-300">Esperando entrada</axlertTitle>
+                          <AlertTitle className="text-blue-800 dark:text-blue-300">Esperando entrada</AlertTitle>
                           <AlertDescription className="text-blue-700 dark:text-blue-400">
                             Completa el formulario para generar la evaluación de riesgos.
                           </AlertDescription>
