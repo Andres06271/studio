@@ -11,9 +11,8 @@ import { Button } from '@/components/ui/button';
 import { FileDown, SlidersHorizontal } from 'lucide-react';
 import { incidentTrendData, projectProgressData, incidentTypeData } from '@/lib/data';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, Cell, Line, ResponsiveContainer, Tooltip } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Pie, Cell } from "recharts"
 import { PieChart as RechartsPieChart } from 'recharts/lib/chart/PieChart';
-import { YAxis } from 'recharts/lib/cartesian/YAxis';
 import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

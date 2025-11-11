@@ -8,10 +8,8 @@ import {
 import { kpiData, projectProgressData, incidentTypeData, incidentTrendData } from '@/lib/data';
 import { BarChart3, PieChart, LineChart, FileText, AlertOctagon, FolderKanban } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, Cell as RechartsPrimitive, Line, ResponsiveContainer, Tooltip } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Pie, Cell as RechartsPrimitive, LineChart as RechartsLineChart, Line } from 'recharts';
 import { PieChart as RechartsPieChart } from 'recharts/lib/chart/PieChart';
-import { LineChart as RechartsLineChart } from 'recharts/lib/chart/LineChart';
-import { YAxis } from 'recharts/lib/cartesian/YAxis';
 
 
 const chartConfig = {
@@ -119,7 +117,7 @@ export default function DashboardPage() {
                   <Tooltip content={<ChartTooltipContent nameKey="incidents" hideLabel />} />
                   <Pie data={incidentTypeData} dataKey="count" nameKey="type" innerRadius={60} strokeWidth={5}>
                      {incidentTypeData.map((entry, index) => (
-                      <RechartsPrimitive.Cell key={`cell-${index}`} fill={pieChartConfig[entry.type as keyof typeof pieChartConfig]?.color || 'hsl(var(--muted))'} />
+                      <RechartsPrimitive key={`cell-${index}`} fill={pieChartConfig[entry.type as keyof typeof pieChartConfig]?.color || 'hsl(var(--muted))'} />
                     ))}
                   </Pie>
                 </RechartsPieChart>
