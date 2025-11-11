@@ -49,7 +49,7 @@ export default function ReportsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   return (
-    <div className="space-y-6">
+    <div id="report-root" className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold font-headline">Reportes y Estadísticas</h1>
@@ -58,11 +58,41 @@ export default function ReportsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={() => {
-                // quick printable view can be implemented later — for now keep print action simple
-                // open print dialog (user can save as PDF)
-                if (typeof window !== 'undefined') {
-                  window.print()
+            <Button variant="outline" onClick={async () => {
+                // Client-side PDF generation using html2canvas + jsPDF
+                // Dynamic import to avoid hard dependency at build-time if packages are missing.
+                try {
+                  const [html2canvasMod, jsPDFMod] = await Promise.all([
+                    import('html2canvas'),
+                    import('jspdf')
+                  ])
+                  const html2canvas = html2canvasMod.default || html2canvasMod
+                  const { jsPDF } = jsPDFMod
+
+                  const el = document.getElementById('report-root') || document.body
+                  const canvas = await html2canvas(el, { scale: 2 })
+                  const imgData = canvas.toDataURL('image/png')
+
+                  // A4 dimensions in mm
+                  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+                  const pageWidth = pdf.internal.pageSize.getWidth()
+                  const pageHeight = pdf.internal.pageSize.getHeight()
+
+                  // Calculate image dimensions (preserve aspect ratio)
+                  const imgProps = (pdf as any).getImageProperties(imgData)
+                  const imgWidthMm = (imgProps.width * 25.4) / 96 // px to mm (@96dpi)
+                  const imgHeightMm = (imgProps.height * 25.4) / 96
+                  const ratio = Math.min(pageWidth / imgWidthMm, pageHeight / imgHeightMm)
+                  const renderWidth = imgWidthMm * ratio
+                  const renderHeight = imgHeightMm * ratio
+
+                  pdf.addImage(imgData, 'PNG', (pageWidth - renderWidth) / 2, 10, renderWidth, renderHeight)
+                  pdf.save('reportes.pdf')
+                } catch (err) {
+                  // eslint-disable-next-line no-console
+                  console.error('Error generando PDF', err)
+                  // Fallback: abrir diálogo de impresión del navegador
+                  if (typeof window !== 'undefined') window.print()
                 }
             }}>
                 <FileDown className="mr-2 h-4 w-4" />
