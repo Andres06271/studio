@@ -8,8 +8,11 @@ import {
 import { kpiData, projectProgressData, incidentTypeData, incidentTrendData } from '@/lib/data';
 import { BarChart3, PieChart, LineChart, FileText, AlertOctagon, FolderKanban } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart as RechartsPieChart, Line, LineChart as RechartsLineChart, ResponsiveContainer, Tooltip } from "recharts"
-import { YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, Pie, Cell as RechartsPrimitive, Line, ResponsiveContainer, Tooltip } from "recharts"
+import { PieChart as RechartsPieChart } from 'recharts/lib/chart/PieChart';
+import { LineChart as RechartsLineChart } from 'recharts/lib/chart/LineChart';
+import { YAxis } from 'recharts/lib/cartesian/YAxis';
+
 
 const chartConfig = {
   progress: {
