@@ -68,37 +68,42 @@ export default function ReportsPage() {
                 <FileDown className="mr-2 h-4 w-4" />
                 Exportar PDF
             </Button>
-            <Button variant="outline" onClick={() => {
-                // Client-side CSV export (quick-win)
+            <Button variant="outline" onClick={async () => {
+                // Call server-side export endpoint so the server can stream/format large exports
                 try {
-                  const columns = [
-                    { key: 'id', label: 'ID' },
-                    { key: 'type', label: 'Tipo' },
-                    { key: 'severity', label: 'Severidad' },
-                    { key: 'date', label: 'Fecha' },
-                    { key: 'description', label: 'Descripción' },
-                    { key: 'status', label: 'Estado' },
-                    { key: 'project', label: 'Proyecto' },
-                  ]
-
-                  // Apply current filters before exporting
-                  const filtered = (incidents as any[]).filter((i) => {
-                    if (projectFilter && projectFilter !== 'all' && i.project !== projectFilter) return false
-                    if (typeFilter && typeFilter !== 'all' && i.type !== typeFilter) return false
-                    if (date?.from) {
-                      const from = date.from.getTime()
-                      const to = date.to ? date.to.getTime() : from
-                      const id = new Date(i.date).getTime()
-                      if (id < from || id > to) return false
+                  const params = new URLSearchParams()
+                  params.set('format', 'csv')
+                  if (projectFilter && projectFilter !== 'all') params.set('project', projectFilter)
+                  if (typeFilter && typeFilter !== 'all') params.set('type', typeFilter)
+                  if (date?.from) {
+                    const fromIso = date.from.toISOString().slice(0,10)
+                    params.set('from', fromIso)
+                    if (date.to) {
+                      const toIso = date.to.toISOString().slice(0,10)
+                      params.set('to', toIso)
                     }
-                    return true
-                  })
+                  }
 
-                  const csv = toCsv(filtered, columns)
-                  downloadFile('incidentes.csv', csv)
+                  const res = await fetch(`/api/reportes/export?${params.toString()}`)
+                  if (!res.ok) throw new Error(`Export failed: ${res.status}`)
+
+                  const blob = await res.blob()
+                  const url = URL.createObjectURL(blob)
+                  const disposition = res.headers.get('Content-Disposition') || ''
+                  let filename = 'reportes-incidentes.csv'
+                  const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)/)
+                  if (match && match[1]) filename = decodeURIComponent(match[1])
+
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = filename
+                  document.body.appendChild(a)
+                  a.click()
+                  a.remove()
+                  setTimeout(() => URL.revokeObjectURL(url), 5000)
                 } catch (err) {
                   // eslint-disable-next-line no-console
-                  console.error('Error generando CSV', err)
+                  console.error('Error descargando CSV', err)
                 }
             }}>
                 <FileDown className="mr-2 h-4 w-4" />
