@@ -38,12 +38,12 @@ const navItems = [
   { href: '/risk-assessment', label: 'Análisis IA', icon: BrainCircuit },
 ];
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+function AppShellContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { state } = useSidebar();
-  
+
   return (
-    <SidebarProvider>
+    <>
       <Sidebar>
         <SidebarHeader>
           <Link href="/" className="flex items-center gap-2.5 px-3.5 py-3">
@@ -97,6 +97,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </SidebarInset>
+    </>
+  );
+}
+
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider>
+      <AppShellContent>{children}</AppShellContent>
     </SidebarProvider>
   );
 }
