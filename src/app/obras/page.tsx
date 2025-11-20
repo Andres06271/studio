@@ -29,6 +29,7 @@ import type { Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { CreateProjectForm } from '@/components/create-project-form';
 
 export default function ObrasPage() {
   const getStatusBadgeClass = (status: Project['status']) => {
@@ -55,7 +56,7 @@ export default function ObrasPage() {
             Gestiona todos tus proyectos en un solo lugar.
             </p>
         </div>
-        <Button>Crear Nueva Obra</Button>
+        <CreateProjectForm />
       </div>
       <Separator />
 
