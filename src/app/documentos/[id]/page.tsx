@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -19,10 +19,10 @@ import { format } from 'date-fns';
 import { initialDocuments } from '@/lib/data';
 import type { Document, Project } from '@/lib/types';
 import Link from 'next/link';
+import { downloadFile } from '@/lib/report-utils';
 
 export default function ProjectDocumentsPage() {
   const params = useParams();
-  const router = useRouter();
   const { id } = params;
   
   const [project, setProject] = useState<Project | null>(null);
@@ -105,7 +105,7 @@ export default function ProjectDocumentsPage() {
     if (!project) return;
     
     const newDocuments: Document[] = files.map(file => ({
-        id: `DOC-${Date.now()}-${Math.random()}`,
+        id: `DOC-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         name: file.name,
         description: `Archivo para ${project.name}`,
         uploader: 'Equipo de Ingeniería', // Placeholder user
@@ -127,7 +127,15 @@ export default function ProjectDocumentsPage() {
     setDocuments(updatedDocuments);
     localStorage.setItem('documents', JSON.stringify(updatedDocuments));
     toast({ title: `Documento eliminado.`});
-  }
+  };
+
+  const handleDownload = (doc: Document) => {
+    // Simulating file download as we are not storing the actual files
+    const fileContent = `Contenido de muestra para el archivo: ${doc.name}\n\nEste es un archivo de demostración.`;
+    const fileName = doc.name.endsWith('.txt') ? doc.name : `${doc.name.split('.')[0]}.txt`;
+    downloadFile(fileName, fileContent, 'text/plain');
+    toast({ title: "Descarga iniciada", description: `Descargando ${doc.name}` });
+  };
 
   if (!project) {
     return (
@@ -255,7 +263,7 @@ export default function ProjectDocumentsPage() {
                     <TableCell>{format(new Date(doc.uploadDate), 'dd MMM, yyyy')}</TableCell>
                     <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => handleDownload(doc)}>
                             <Download className="h-4 w-4" />
                             <span className="sr-only">Descargar</span>
                         </Button>
