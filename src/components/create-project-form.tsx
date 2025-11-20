@@ -30,6 +30,7 @@ import dynamic from 'next/dynamic';
 
 const ProjectMap = dynamic(() => import('./project-map').then((mod) => mod.ProjectMap), {
   ssr: false,
+  loading: () => <div className="h-full w-full bg-muted animate-pulse" />,
 });
 
 const projectFormSchema = z.object({
@@ -67,8 +68,8 @@ export function CreateProjectForm() {
   });
   
   const handleMapClick = (lat: number, lng: number) => {
-    form.setValue('latitude', lat);
-    form.setValue('longitude', lng);
+    form.setValue('latitude', lat, { shouldValidate: true });
+    form.setValue('longitude', lng, { shouldValidate: true });
   };
 
   const onSubmit = (data: ProjectFormValues) => {
@@ -206,9 +207,9 @@ export function CreateProjectForm() {
                 )}
               />
             </div>
-             <div className="space-y-2">
+             <div className="space-y-2 flex flex-col">
                 <FormLabel className="flex items-center gap-2"><MapPin className="h-4 w-4"/> Ubicación en el Mapa</FormLabel>
-                <div className="h-[400px] w-full rounded-md border overflow-hidden">
+                <div className="h-[400px] w-full rounded-md border overflow-hidden flex-1">
                     <ProjectMap 
                         lat={form.watch('latitude')} 
                         lng={form.watch('longitude')} 

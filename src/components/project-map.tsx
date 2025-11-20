@@ -1,9 +1,9 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 // Solución para el ícono de marcador que no aparece por defecto con Webpack
 const markerIcon = new L.Icon({
@@ -36,11 +36,28 @@ interface ProjectMapProps {
 }
 
 export function ProjectMap({ lat, lng, onMapClick }: ProjectMapProps) {
-    
-  // A veces el mapa no se renderiza correctamente dentro de un modal al abrirse.
-  // Este efecto secundario fuerza al mapa a recalcular su tamaño.
-  const map = (
-    <MapContainer center={[lat, lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
+  const mapRef = useRef<L.Map>(null);
+
+  useEffect(() => {
+    // Cuando el modal se abre, el mapa a veces no sabe su tamaño.
+    // Invalidamos el tamaño del mapa para que se ajuste al contenedor.
+    const map = mapRef.current;
+    if (map) {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
+    }
+  }, []);
+
+  return (
+    <MapContainer
+      center={[lat, lng]}
+      zoom={13}
+      style={{ height: '100%', width: '100%' }}
+      whenCreated={(map) => {
+        (mapRef as React.MutableRefObject<L.Map | null>).current = map;
+      }}
+    >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -49,10 +66,4 @@ export function ProjectMap({ lat, lng, onMapClick }: ProjectMapProps) {
       <MapEvents onMapClick={onMapClick} />
     </MapContainer>
   );
-
-  useEffect(() => {
-    // Forzar el renderizado del mapa cuando el componente se monta
-  }, []);
-
-  return map;
 }
