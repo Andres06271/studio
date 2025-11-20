@@ -10,8 +10,17 @@ import type { Incident } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { IncidentFormDialog } from '@/components/incident-form-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type FilterStatus = 'Todos' | 'Reportado' | 'En revisión' | 'Mitigado';
 
@@ -35,6 +44,15 @@ export default function IncidentsPage() {
     setIncidents(updatedIncidents);
     localStorage.setItem('incidents', JSON.stringify(updatedIncidents));
   };
+  
+  const handleStatusChange = (incidentId: string, newStatus: Incident['status']) => {
+    const updatedIncidents = incidents.map((incident) =>
+      incident.id === incidentId ? { ...incident, status: newStatus } : incident
+    );
+    setIncidents(updatedIncidents);
+    localStorage.setItem('incidents', JSON.stringify(updatedIncidents));
+  };
+
 
   const filteredIncidents =
     filter === 'Todos'
@@ -106,16 +124,42 @@ export default function IncidentsPage() {
           <Card key={incident.id} className="flex flex-col">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <CardTitle className="text-lg leading-tight">
-                  {incident.type}
-                </CardTitle>
-                <Badge className={cn('whitespace-nowrap', getSeverityBadge(incident.severity))}>
-                  {incident.severity}
-                </Badge>
+                <div className="flex-1">
+                  <CardTitle className="text-lg leading-tight">
+                    {incident.type}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground pt-1">
+                    Obra: {incident.project}
+                  </p>
+                </div>
+                 <div className="flex items-center gap-2 ml-4">
+                   <Badge className={cn('whitespace-nowrap', getSeverityBadge(incident.severity))}>
+                     {incident.severity}
+                   </Badge>
+                   <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                         <DropdownMenuLabel>Cambiar Estado</DropdownMenuLabel>
+                         <DropdownMenuSeparator />
+                         <DropdownMenuRadioGroup
+                          value={incident.status}
+                          onValueChange={(newStatus) =>
+                            handleStatusChange(incident.id, newStatus as Incident['status'])
+                          }
+                        >
+                          <DropdownMenuRadioItem value="Reportado">Reportado</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="En revisión">En revisión</DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="Mitigado">Mitigado</DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                 </div>
               </div>
-              <p className="text-sm text-muted-foreground pt-1">
-                Obra: {incident.project}
-              </p>
+              
             </CardHeader>
             <CardContent className="flex-grow flex flex-col justify-between">
               <p className="text-sm text-muted-foreground mb-4">
