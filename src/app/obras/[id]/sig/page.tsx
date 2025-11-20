@@ -8,10 +8,11 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Layers, CircleDot, X } from 'lucide-react';
+import { ArrowLeft, Layers, CircleDot, X, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const ProjectDetailMap = dynamic(
   () => import('@/components/project-detail-map').then((mod) => mod.ProjectDetailMap),
@@ -101,9 +102,11 @@ export default function ObraSigPage() {
 
   return (
     <div className="relative h-[calc(100vh-theme(spacing.16))] w-full">
-        <div className="absolute top-4 left-4 z-10 flex w-[320px] flex-col gap-2">
-            <div className="flex flex-col gap-2 rounded-lg border border-border bg-background/80 p-3 shadow-lg backdrop-blur-sm">
-                <div className="flex items-center gap-3">
+        <div className="leaflet-control-container">
+          <div className="leaflet-top leaflet-left">
+            <div className="leaflet-control bg-transparent p-0">
+               <div className="flex w-[320px] flex-col gap-0 overflow-hidden rounded-md border border-border bg-background/80 shadow-lg backdrop-blur-sm">
+                  <div className="flex items-center gap-3 p-3">
                      <Button asChild variant="outline" size="icon" className="h-9 w-9 shrink-0">
                         <Link href={`/obras/${id}`}>
                             <ArrowLeft className="h-5 w-5"/>
@@ -114,35 +117,51 @@ export default function ObraSigPage() {
                         <p className="text-sm text-muted-foreground">Visualizador SIG</p>
                     </div>
                 </div>
-                 <hr className="my-1 border-border" />
-                 <div>
-                    <Label htmlFor="buffer-radius" className="mb-2 flex items-center gap-2 text-sm font-medium">
+
+                 <Collapsible className="w-full">
+                  <CollapsibleTrigger asChild>
+                    <button className="flex w-full items-center justify-between border-t border-border bg-background/50 px-3 py-2 text-left text-sm font-medium hover:bg-accent">
+                      <div className="flex items-center gap-2">
                         <Layers className="h-4 w-4"/>
-                        Análisis de Proximidad (Buffer)
-                    </Label>
-                    <div className="flex items-center gap-2">
-                        <Input 
-                            id="buffer-radius"
-                            type="number"
-                            placeholder="Radio en metros"
-                            value={radiusInput}
-                            onChange={(e) => setRadiusInput(e.target.value)}
-                            className="h-9"
-                        />
-                         <span className="text-sm text-muted-foreground">m</span>
+                        Análisis de Proximidad
+                      </div>
+                      <ChevronDown className="h-5 w-5 transition-transform [&[data-state=open]]:rotate-180" />
+                    </button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="space-y-3 border-t border-border p-3">
+                      <div>
+                        <Label htmlFor="buffer-radius" className="mb-1.5 block text-xs text-muted-foreground">
+                            Radio en metros
+                        </Label>
+                        <div className="flex items-center gap-2">
+                            <Input 
+                                id="buffer-radius"
+                                type="number"
+                                placeholder="Radio en metros"
+                                value={radiusInput}
+                                onChange={(e) => setRadiusInput(e.target.value)}
+                                className="h-9"
+                            />
+                             <span className="text-sm text-muted-foreground">m</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                          <Button onClick={handleToggleBufferMode} size="sm" className="w-full" disabled={isBufferMode}>
+                              <CircleDot className="mr-2 h-4 w-4" />
+                              {isBufferMode ? 'Selecciona...' : 'Dibujar'}
+                          </Button>
+                           <Button onClick={handleClearBuffers} size="sm" variant="destructive" className="w-full">
+                              <X className="mr-2 h-4 w-4" />
+                              Limpiar
+                          </Button>
+                      </div>
                     </div>
-                 </div>
-                <div className="flex gap-2">
-                    <Button onClick={handleToggleBufferMode} size="sm" className="w-full" disabled={isBufferMode}>
-                        <CircleDot className="mr-2 h-4 w-4" />
-                        {isBufferMode ? 'Selecciona un punto...' : 'Dibujar Buffer'}
-                    </Button>
-                     <Button onClick={handleClearBuffers} size="sm" variant="destructive" className="w-full">
-                        <X className="mr-2 h-4 w-4" />
-                        Limpiar
-                    </Button>
-                </div>
+                  </CollapsibleContent>
+                 </Collapsible>
+              </div>
             </div>
+          </div>
         </div>
         <ProjectDetailMap 
             project={project} 
