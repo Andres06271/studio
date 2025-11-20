@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -12,7 +12,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -25,9 +24,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, PlusCircle } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import type { Project } from '@/lib/types';
+import { DialogProps } from '@radix-ui/react-dialog';
 
 const ProjectMap = dynamic(() => import('./project-map').then((mod) => mod.ProjectMap), {
   ssr: false,
@@ -51,14 +51,24 @@ const projectFormSchema = z.object({
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
-interface CreateProjectFormProps {
+interface ProjectFormDialogProps extends DialogProps {
   onProjectCreated: (project: Project) => void;
+  onProjectUpdated: (project: Project) => void;
+  projectToEdit?: Project;
 }
 
-export function CreateProjectForm({ onProjectCreated }: CreateProjectFormProps) {
-  const [open, setOpen] = useState(false);
+export function ProjectFormDialog({
+  open,
+  onOpenChange,
+  onProjectCreated,
+  onProjectUpdated,
+  projectToEdit,
+}: ProjectFormDialogProps) {
   const [mapKey, setMapKey] = useState(0);
   const { toast } = useToast();
+  
+  const isEditMode = !!projectToEdit;
+
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
@@ -72,51 +82,81 @@ export function CreateProjectForm({ onProjectCreated }: CreateProjectFormProps) 
       longitude: -75.5812,
     },
   });
-  
+
+  useEffect(() => {
+    if (projectToEdit) {
+      form.reset({
+        name: projectToEdit.name,
+        location: projectToEdit.location,
+        manager: projectToEdit.manager,
+        description: projectToEdit.description,
+        startDate: projectToEdit.startDate,
+        endDate: projectToEdit.endDate,
+        latitude: projectToEdit.latitude,
+        longitude: projectToEdit.longitude,
+      });
+    } else {
+      form.reset({
+        name: '',
+        location: '',
+        manager: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        latitude: 6.2442,
+        longitude: -75.5812,
+      });
+    }
+  }, [projectToEdit, form]);
+
+  useEffect(() => {
+    if (open) {
+      // Force map to remount when dialog opens
+      setMapKey((prev) => prev + 1);
+    }
+  }, [open]);
+
   const handleMapClick = (lat: number, lng: number) => {
     form.setValue('latitude', lat, { shouldValidate: true });
     form.setValue('longitude', lng, { shouldValidate: true });
   };
 
-  const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (newOpen) {
-      // Force map to remount when dialog opens
-      setMapKey((prev) => prev + 1);
-    }
-  };
-
   const onSubmit = (data: ProjectFormValues) => {
-    const newProject: Project = {
-      ...data,
-      id: `OBRA-${Date.now()}`,
-      status: 'Activo',
-      progress: 0,
-      timeline: [],
-      documents: [],
-    };
-    onProjectCreated(newProject);
-    toast({
-      title: 'Obra Creada',
-      description: `El proyecto "${data.name}" ha sido creado exitosamente.`,
-    });
-    setOpen(false);
-    form.reset();
+    if (isEditMode) {
+      const updatedProject: Project = {
+        ...projectToEdit,
+        ...data,
+      };
+      onProjectUpdated(updatedProject);
+      toast({
+        title: 'Obra Actualizada',
+        description: `El proyecto "${data.name}" ha sido actualizado.`,
+      });
+    } else {
+      const newProject: Project = {
+        ...data,
+        id: `OBRA-${Date.now()}`,
+        status: 'Activo',
+        progress: 0,
+        timeline: [],
+        documents: [],
+      };
+      onProjectCreated(newProject);
+      toast({
+        title: 'Obra Creada',
+        description: `El proyecto "${data.name}" ha sido creado exitosamente.`,
+      });
+    }
+    if (onOpenChange) onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Crear Nueva Obra
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Crear Nueva Obra</DialogTitle>
+          <DialogTitle>{isEditMode ? 'Editar Obra' : 'Crear Nueva Obra'}</DialogTitle>
           <DialogDescription>
-            Completa la información para registrar un nuevo proyecto.
+            {isEditMode ? 'Modifica la información del proyecto.' : 'Completa la información para registrar un nuevo proyecto.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -246,10 +286,10 @@ export function CreateProjectForm({ onProjectCreated }: CreateProjectFormProps) 
                 </p>
             </div>
             <DialogFooter className="md:col-span-2">
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange && onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit">Crear Proyecto</Button>
+              <Button type="submit">{isEditMode ? 'Guardar Cambios' : 'Crear Proyecto'}</Button>
             </DialogFooter>
           </form>
         </Form>

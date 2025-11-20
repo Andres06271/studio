@@ -18,6 +18,7 @@ import {
   Eye,
   Trash2,
   Pencil,
+  PlusCircle,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -30,18 +31,25 @@ import type { Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { CreateProjectForm } from '@/components/create-project-form';
+import { ProjectFormDialog } from '@/components/project-form-dialog';
 
 export default function ObrasPage() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [projectToEdit, setProjectToEdit] = useState<Project | undefined>(undefined);
 
   useEffect(() => {
     const storedProjects = localStorage.getItem('projects');
     if (storedProjects) {
       setProjects(JSON.parse(storedProjects));
     } else {
-      localStorage.setItem('projects', JSON.stringify(initialProjects));
-      setProjects(initialProjects);
+      const projectsWithCoords = initialProjects.map(p => ({
+        ...p,
+        latitude: p.latitude ?? 6.2442,
+        longitude: p.longitude ?? -75.5812,
+      }));
+      localStorage.setItem('projects', JSON.stringify(projectsWithCoords));
+      setProjects(projectsWithCoords);
     }
   }, []);
 
@@ -50,6 +58,23 @@ export default function ObrasPage() {
     setProjects(updatedProjects);
     localStorage.setItem('projects', JSON.stringify(updatedProjects));
   };
+  
+  const handleProjectUpdated = (updatedProject: Project) => {
+    const updatedProjects = projects.map(p => p.id === updatedProject.id ? updatedProject : p);
+    setProjects(updatedProjects);
+    localStorage.setItem('projects', JSON.stringify(updatedProjects));
+  }
+  
+  const openCreateForm = () => {
+    setProjectToEdit(undefined);
+    setIsFormOpen(true);
+  }
+
+  const openEditForm = (project: Project) => {
+    setProjectToEdit(project);
+    setIsFormOpen(true);
+  }
+
 
   const getStatusBadgeClass = (status: Project['status']) => {
     switch (status) {
@@ -75,8 +100,20 @@ export default function ObrasPage() {
             Gestiona todos tus proyectos en un solo lugar.
             </p>
         </div>
-        <CreateProjectForm onProjectCreated={handleProjectCreated} />
+        <Button onClick={openCreateForm}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Crear Nueva Obra
+        </Button>
       </div>
+      
+      <ProjectFormDialog 
+        open={isFormOpen} 
+        onOpenChange={setIsFormOpen}
+        onProjectCreated={handleProjectCreated}
+        onProjectUpdated={handleProjectUpdated}
+        projectToEdit={projectToEdit}
+      />
+
       <Separator />
 
       <Card>
@@ -125,7 +162,7 @@ export default function ObrasPage() {
                               Ver detalles
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openEditForm(project)}>
                             <Pencil className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
