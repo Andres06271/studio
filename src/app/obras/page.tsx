@@ -26,6 +26,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { initialProjects } from '@/lib/data';
 import type { Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -37,6 +47,8 @@ export default function ObrasPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [projectToEdit, setProjectToEdit] = useState<Project | undefined>(undefined);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   useEffect(() => {
     const storedProjects = localStorage.getItem('projects');
@@ -64,6 +76,20 @@ export default function ObrasPage() {
     setProjects(updatedProjects);
     localStorage.setItem('projects', JSON.stringify(updatedProjects));
   }
+
+  const handleDeleteProject = () => {
+    if (!projectToDelete) return;
+    const updatedProjects = projects.filter(p => p.id !== projectToDelete.id);
+    setProjects(updatedProjects);
+    localStorage.setItem('projects', JSON.stringify(updatedProjects));
+    setIsAlertOpen(false);
+    setProjectToDelete(null);
+  };
+
+  const openDeleteDialog = (project: Project) => {
+    setProjectToDelete(project);
+    setIsAlertOpen(true);
+  };
   
   const openCreateForm = () => {
     setProjectToEdit(undefined);
@@ -113,6 +139,24 @@ export default function ObrasPage() {
         onProjectUpdated={handleProjectUpdated}
         projectToEdit={projectToEdit}
       />
+      
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente el proyecto
+               "{projectToDelete?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProject} className="bg-destructive hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Separator />
 
@@ -166,7 +210,10 @@ export default function ObrasPage() {
                             <Pencil className="mr-2 h-4 w-4" />
                             Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive focus:text-destructive">
+                          <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => openDeleteDialog(project)}
+                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar
                           </DropdownMenuItem>
