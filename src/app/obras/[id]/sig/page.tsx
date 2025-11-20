@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import type { Project, Incident } from '@/lib/types';
-import { initialIncidents } from '@/lib/data';
+import { initialIncidents, initialProjects } from '@/lib/data';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -30,25 +30,21 @@ export default function ObraSigPage() {
   const [bufferRadius, setBufferRadius] = useState<number>(0);
   const [radiusInput, setRadiusInput] = useState<string>('500');
   const [isBufferMode, setIsBufferMode] = useState(false);
-  const [mapInstance, setMapInstance] = useState<any>(null);
+  const [mapInstance, setMapInstance] = useState<any>(null); // No se usa directamente pero es útil para futuras interacciones
   const { toast } = useToast();
 
   useEffect(() => {
     if (typeof id === 'string') {
-      // Cargar proyecto
       const storedProjects = localStorage.getItem('projects');
-      if (storedProjects) {
-        const projects: Project[] = JSON.parse(storedProjects);
-        const foundProject = projects.find((p) => p.id === id);
-        setProject(foundProject || null);
-        
-        if (foundProject) {
-            // Cargar y filtrar incidentes
-            const storedIncidents = localStorage.getItem('incidents');
-            const allIncidents: Incident[] = storedIncidents ? JSON.parse(storedIncidents) : initialIncidents;
-            const projectIncidents = allIncidents.filter(inc => inc.project === foundProject.name);
-            setIncidents(projectIncidents);
-        }
+      const projects: Project[] = storedProjects ? JSON.parse(storedProjects) : initialProjects;
+      const foundProject = projects.find((p) => p.id === id);
+      setProject(foundProject || null);
+      
+      if (foundProject) {
+        const storedIncidents = localStorage.getItem('incidents');
+        const allIncidents: Incident[] = storedIncidents ? JSON.parse(storedIncidents) : initialIncidents;
+        const projectIncidents = allIncidents.filter(inc => inc.project === foundProject.name);
+        setIncidents(projectIncidents);
       }
     }
     setLoading(false);
@@ -105,36 +101,37 @@ export default function ObraSigPage() {
 
   return (
     <div className="relative h-[calc(100vh-theme(spacing.16))] w-full">
-        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-            <div className="flex gap-2">
-                <Button asChild variant="outline" size="icon" className="bg-background/80 backdrop-blur-sm">
-                    <Link href={`/obras/${id}`}>
-                        <ArrowLeft />
-                    </Link>
-                </Button>
-                <div className="bg-background/80 backdrop-blur-sm rounded-md px-4 py-2">
-                    <h1 className="text-lg font-bold font-headline">{project.name}</h1>
-                    <p className="text-sm text-muted-foreground">Visualizador SIG</p>
+        <div className="absolute top-4 left-4 z-10 flex w-[320px] flex-col gap-2">
+            <div className="flex flex-col gap-2 rounded-lg border border-border bg-background/80 p-3 shadow-lg backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                     <Button asChild variant="outline" size="icon" className="h-9 w-9 shrink-0">
+                        <Link href={`/obras/${id}`}>
+                            <ArrowLeft className="h-5 w-5"/>
+                        </Link>
+                    </Button>
+                    <div>
+                        <h1 className="text-lg font-bold font-headline leading-tight">{project.name}</h1>
+                        <p className="text-sm text-muted-foreground">Visualizador SIG</p>
+                    </div>
                 </div>
-            </div>
-            <div className="bg-background/80 backdrop-blur-sm rounded-md px-4 py-2 space-y-3">
-               <div>
-                <Label htmlFor="buffer-radius" className="flex items-center gap-2 mb-2 text-sm font-medium">
-                    <Layers className="h-4 w-4"/>
-                    Análisis de Proximidad (Buffer)
-                </Label>
-                <div className="flex items-center gap-2">
-                    <Input 
-                        id="buffer-radius"
-                        type="number"
-                        placeholder="Radio en metros"
-                        value={radiusInput}
-                        onChange={(e) => setRadiusInput(e.target.value)}
-                        className="h-9"
-                    />
-                     <span className="text-sm text-muted-foreground">m</span>
-                </div>
-               </div>
+                 <hr className="my-1 border-border" />
+                 <div>
+                    <Label htmlFor="buffer-radius" className="mb-2 flex items-center gap-2 text-sm font-medium">
+                        <Layers className="h-4 w-4"/>
+                        Análisis de Proximidad (Buffer)
+                    </Label>
+                    <div className="flex items-center gap-2">
+                        <Input 
+                            id="buffer-radius"
+                            type="number"
+                            placeholder="Radio en metros"
+                            value={radiusInput}
+                            onChange={(e) => setRadiusInput(e.target.value)}
+                            className="h-9"
+                        />
+                         <span className="text-sm text-muted-foreground">m</span>
+                    </div>
+                 </div>
                 <div className="flex gap-2">
                     <Button onClick={handleToggleBufferMode} size="sm" className="w-full" disabled={isBufferMode}>
                         <CircleDot className="mr-2 h-4 w-4" />
