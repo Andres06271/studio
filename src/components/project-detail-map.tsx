@@ -4,8 +4,12 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import type { Project, Incident } from '@/lib/types';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
-// Icono para proyectos
+// --- Iconos Personalizados ---
+
+// Icono para proyectos (marcador por defecto)
 const defaultMarkerIcon = new L.Icon({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -16,13 +20,27 @@ const defaultMarkerIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-// Icono para incidentes
-const incidentIcon = new L.Icon({
-    iconUrl: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzAwMDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJtMjEuNzQgMTYtOS4wOC0xNC4yNWEyIDIgMCAwIDAtMy4zMiAwbC05LjA4IDE0LjI1QTIgMiAwIDAgMCAzLjYzIDIwSjIwYTIsMiAwIDAgMCAxLjc0LTQuMVoiLz48cGF0aCBkPSJNMTIgOWwxIDEiLz48cGF0aCBkPSJNMTIgMTZ2LTItLjUiLz48L3N2Zz4=',
+// Iconos para Incidentes
+const createIncidentIcon = (color: string) => new L.Icon({
+    iconUrl: `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28"><path fill="${color}" stroke="#fff" stroke-width="1" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`)}`,
     iconSize: [28, 28],
     iconAnchor: [14, 28],
     popupAnchor: [0, -28],
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    shadowSize: [41, 41]
 });
+
+const incidentIcons = {
+  'Deslizamiento': createIncidentIcon('hsl(var(--chart-3))'), // rojo
+  'Inundación': createIncidentIcon('hsl(var(--chart-2))'), // azul
+  'Falla Estructural': createIncidentIcon('hsl(var(--chart-5))'), // amarillo
+  'Otro': createIncidentIcon('hsl(var(--muted-foreground))'), // gris
+};
+
+const getIncidentIcon = (type: string) => {
+    return incidentIcons[type as keyof typeof incidentIcons] || incidentIcons['Otro'];
+}
+
 
 interface ProjectDetailMapProps {
   project: Project;
@@ -85,55 +103,75 @@ export function ProjectDetailMap({ project, interactive = false, incidents = [] 
           attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
       });
 
-      streetMap.addTo(map); // Añadir la capa de calles por defecto
+      streetMap.addTo(map);
 
       const baseMaps = {
         "Vista de Calles": streetMap,
         "Vista Satelital": satelliteMap
       };
 
-      if (interactive) {
-        L.control.layers(baseMaps).addTo(map);
-      }
-
-
+      const overlayLayers: { [key: string]: L.Layer } = {};
+      
+      // --- Capa de la Obra ---
       let projectPolygon: L.Polygon | null = null;
       if (project.boundary && project.boundary.length > 0) {
         projectPolygon = L.polygon(project.boundary.map(p => [p.lat, p.lng]), { 
           color: 'hsl(var(--primary))',
           fillColor: 'hsl(var(--primary))',
           fillOpacity: 0.2
-        }).addTo(map);
+        });
         map.fitBounds(projectPolygon.getBounds());
       } else {
         L.marker([project.latitude, project.longitude], { icon: defaultMarkerIcon }).addTo(map);
       }
-      
-      // Añadir marcadores de incidentes
+      const projectLayer = projectPolygon || L.marker([project.latitude, project.longitude], { icon: defaultMarkerIcon });
+      overlayLayers['Área del Proyecto'] = projectLayer.addTo(map);
+
+
+      // --- Capa de Incidentes ---
+      const incidentMarkers: L.Marker[] = [];
       incidents.forEach(incident => {
           let incidentLatLng: L.LatLng;
           if (incident.latitude && incident.longitude) {
               incidentLatLng = new L.LatLng(incident.latitude, incident.longitude);
           } else if (projectPolygon) {
-              // Si no tiene coords, ponerlo aleatorio dentro del polígono del proyecto
               incidentLatLng = getRandomPointInPolygon(projectPolygon);
           } else {
-              // Si no hay polígono, ponerlo cerca del punto del proyecto
               const offset = 0.005;
               incidentLatLng = new L.LatLng(
                   project.latitude! + (Math.random() - 0.5) * offset,
                   project.longitude! + (Math.random() - 0.5) * offset
               );
           }
+          
+          const popupContent = `
+            <div style="font-family: sans-serif; font-size: 13px;">
+                <strong style="font-size: 14px; color: #333;">${incident.type}</strong>
+                <hr style="margin: 4px 0; border: 0; border-top: 1px solid #eee;" />
+                <p style="margin: 2px 0;"><strong>Severidad:</strong> ${incident.severity}</p>
+                <p style="margin: 2px 0;"><strong>Fecha:</strong> ${format(new Date(incident.date), 'dd MMM, yyyy', { locale: es })}</p>
+                <p style="margin-top: 6px; color: #555;">${incident.description}</p>
+            </div>
+          `;
 
-          L.marker(incidentLatLng, { icon: incidentIcon })
-            .addTo(map)
-            .bindPopup(`<b>${incident.type}</b><br>${incident.description}`);
+          const marker = L.marker(incidentLatLng, { icon: getIncidentIcon(incident.type) })
+            .bindPopup(popupContent);
+          
+          incidentMarkers.push(marker);
       });
+
+      if (incidentMarkers.length > 0) {
+        const incidentsLayerGroup = L.layerGroup(incidentMarkers);
+        overlayLayers['Incidentes Reportados'] = incidentsLayerGroup.addTo(map);
+      }
+      
+
+      if (interactive) {
+        L.control.layers(baseMaps, overlayLayers).addTo(map);
+      }
       
       mapRef.current = map;
 
-      // Invalidate size to ensure map renders correctly, especially in flexible containers
       const resizeObserver = new ResizeObserver(() => {
         map.invalidateSize();
       });
