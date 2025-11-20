@@ -25,7 +25,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle } from 'lucide-react';
+import { MapPin, PlusCircle } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const ProjectMap = dynamic(() => import('./project-map').then((mod) => mod.ProjectMap), {
+  ssr: false,
+});
 
 const projectFormSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres.'),
@@ -33,11 +38,13 @@ const projectFormSchema = z.object({
   manager: z.string().min(3, 'El nombre del responsable es requerido.'),
   description: z.string().min(10, 'La descripción es requerida.'),
   startDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "La fecha de inicio es requerida.",
+    message: 'La fecha de inicio es requerida.',
   }),
   endDate: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: "La fecha de finalización es requerida.",
+    message: 'La fecha de finalización es requerida.',
   }),
+  latitude: z.number(),
+  longitude: z.number(),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
@@ -53,9 +60,16 @@ export function CreateProjectForm() {
       manager: '',
       description: '',
       startDate: '',
-      endDate: ''
+      endDate: '',
+      latitude: 6.2442, // Default to Medellín
+      longitude: -75.5812,
     },
   });
+  
+  const handleMapClick = (lat: number, lng: number) => {
+    form.setValue('latitude', lat);
+    form.setValue('longitude', lng);
+  };
 
   const onSubmit = (data: ProjectFormValues) => {
     console.log('Nuevo proyecto creado:', data);
@@ -71,11 +85,11 @@ export function CreateProjectForm() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Crear Nueva Obra
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Crear Nueva Obra
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Crear Nueva Obra</DialogTitle>
           <DialogDescription>
@@ -83,88 +97,129 @@ export function CreateProjectForm() {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre del Proyecto</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Viaducto del Suroeste" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ubicación</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Antioquia, Colombia" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="manager"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Responsable</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: Ana García" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Descripción detallada del proyecto..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <FormField
                 control={form.control}
-                name="startDate"
+                name="name"
                 render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Fecha de Inicio</FormLabel>
+                  <FormItem>
+                    <FormLabel>Nombre del Proyecto</FormLabel>
                     <FormControl>
-                        <Input type="date" {...field} />
+                      <Input placeholder="Ej: Viaducto del Suroeste" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-                <FormField
+              />
+              <FormField
                 control={form.control}
-                name="endDate"
+                name="location"
                 render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Fecha de Finalización</FormLabel>
+                  <FormItem>
+                    <FormLabel>Ubicación (Texto)</FormLabel>
                     <FormControl>
-                        <Input type="date" {...field} />
+                      <Input placeholder="Ej: Antioquia, Colombia" {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
+              />
+              <FormField
+                control={form.control}
+                name="manager"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Responsable</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej: Ana García" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descripción</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Descripción detallada del proyecto..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fecha de Inicio</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
+                <FormField
+                  control={form.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fecha de Finalización</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+               <FormField
+                control={form.control}
+                name="latitude"
+                render={({ field }) => (
+                  <FormItem className="hidden">
+                    <FormLabel>Latitud</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="longitude"
+                render={({ field }) => (
+                  <FormItem className="hidden">
+                    <FormLabel>Longitud</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <DialogFooter>
+             <div className="space-y-2">
+                <FormLabel className="flex items-center gap-2"><MapPin className="h-4 w-4"/> Ubicación en el Mapa</FormLabel>
+                <div className="h-[400px] w-full rounded-md border overflow-hidden">
+                    <ProjectMap 
+                        lat={form.watch('latitude')} 
+                        lng={form.watch('longitude')} 
+                        onMapClick={handleMapClick} 
+                    />
+                </div>
+                 <p className="text-xs text-muted-foreground">
+                    Haz clic en el mapa para fijar la ubicación de la obra.
+                </p>
+            </div>
+            <DialogFooter className="md:col-span-2">
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>

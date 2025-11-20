@@ -1,6 +1,13 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  webpack: (config) => {
+    config.externals.push({
+      'react-native-fs': 'react-native-fs',
+    })
+
+    return config
+  },
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,
