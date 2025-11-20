@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Solución para el ícono de marcador que no aparece por defecto con Webpack
 const markerIcon = new L.Icon({
@@ -29,6 +29,22 @@ const MapEvents = ({ onMapClick }: MapEventsProps) => {
   return null;
 };
 
+// Component to handle map reference and resizing
+const MapController = () => {
+  const map = useMap();
+  
+  useEffect(() => {
+    // Invalidar el tamaño del mapa cuando se monta
+    const timeoutId = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [map]);
+  
+  return null;
+};
+
 interface ProjectMapProps {
   lat: number;
   lng: number;
@@ -36,34 +52,46 @@ interface ProjectMapProps {
 }
 
 export function ProjectMap({ lat, lng, onMapClick }: ProjectMapProps) {
-  const mapRef = useRef<L.Map>(null);
+  const [mapKey, setMapKey] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Cuando el modal se abre, el mapa a veces no sabe su tamaño.
-    // Invalidamos el tamaño del mapa para que se ajuste al contenedor.
-    const map = mapRef.current;
-    if (map) {
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 100);
-    }
+    // Force remount of map when component mounts to avoid initialization errors
+    setMapKey((prev) => prev + 1);
+    
+    return () => {
+      // Cleanup on unmount
+      const container = containerRef.current;
+      if (container) {
+        const mapContainer = container.querySelector('.leaflet-container') as HTMLElement;
+        if (mapContainer && (mapContainer as any)._leaflet_id) {
+          // Remove the Leaflet container properly
+          const map = (mapContainer as any)._leaflet_map;
+          if (map) {
+            map.remove();
+          }
+        }
+      }
+    };
   }, []);
 
   return (
-    <MapContainer
-      center={[lat, lng]}
-      zoom={13}
-      style={{ height: '100%', width: '100%' }}
-      whenCreated={(map) => {
-        (mapRef as React.MutableRefObject<L.Map | null>).current = map;
-      }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={[lat, lng]} icon={markerIcon} />
-      <MapEvents onMapClick={onMapClick} />
-    </MapContainer>
+    <div ref={containerRef} style={{ height: '100%', width: '100%' }}>
+      <MapContainer
+        key={mapKey}
+        center={[lat, lng]}
+        zoom={13}
+        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={true}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={[lat, lng]} icon={markerIcon} />
+        <MapEvents onMapClick={onMapClick} />
+        <MapController />
+      </MapContainer>
+    </div>
   );
 }

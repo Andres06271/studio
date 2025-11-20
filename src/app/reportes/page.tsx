@@ -58,94 +58,94 @@ export default function ReportsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-            <Button variant="outline" onClick={async () => {
-                // Client-side PDF generation using html2canvas + jsPDF
-                // Dynamic import to avoid hard dependency at build-time if packages are missing.
-                try {
-                  const [html2canvasMod, jsPDFMod] = await Promise.all([
-                    import('html2canvas'),
-                    import('jspdf')
-                  ])
-                  const html2canvas = html2canvasMod.default || html2canvasMod
-                  const { jsPDF } = jsPDFMod
+          <Button variant="outline" onClick={async () => {
+            // Client-side PDF generation using html2canvas + jsPDF
+            // Dynamic import to avoid hard dependency at build-time if packages are missing.
+            try {
+              const [html2canvasMod, jsPDFMod] = await Promise.all([
+                import('html2canvas'),
+                import('jspdf')
+              ])
+              const html2canvas = html2canvasMod.default || html2canvasMod
+              const { jsPDF } = jsPDFMod
 
-                  const el = document.getElementById('report-root') || document.body
-                  const canvas = await html2canvas(el, { scale: 2 })
-                  const imgData = canvas.toDataURL('image/png')
+              const el = document.getElementById('report-root') || document.body
+              const canvas = await html2canvas(el, { scale: 2 })
+              const imgData = canvas.toDataURL('image/png')
 
-                  // A4 dimensions in mm
-                  const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-                  const pageWidth = pdf.internal.pageSize.getWidth()
-                  const pageHeight = pdf.internal.pageSize.getHeight()
+              // A4 dimensions in mm
+              const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+              const pageWidth = pdf.internal.pageSize.getWidth()
+              const pageHeight = pdf.internal.pageSize.getHeight()
 
-                  // Calculate image dimensions (preserve aspect ratio)
-                  const imgProps = (pdf as any).getImageProperties(imgData)
-                  const imgWidthMm = (imgProps.width * 25.4) / 96 // px to mm (@96dpi)
-                  const imgHeightMm = (imgProps.height * 25.4) / 96
-                  const ratio = Math.min(pageWidth / imgWidthMm, pageHeight / imgHeightMm)
-                  const renderWidth = imgWidthMm * ratio
-                  const renderHeight = imgHeightMm * ratio
+              // Calculate image dimensions (preserve aspect ratio)
+              const imgProps = (pdf as any).getImageProperties(imgData)
+              const imgWidthMm = (imgProps.width * 25.4) / 96 // px to mm (@96dpi)
+              const imgHeightMm = (imgProps.height * 25.4) / 96
+              const ratio = Math.min(pageWidth / imgWidthMm, pageHeight / imgHeightMm)
+              const renderWidth = imgWidthMm * ratio
+              const renderHeight = imgHeightMm * ratio
 
-                  pdf.addImage(imgData, 'PNG', (pageWidth - renderWidth) / 2, 10, renderWidth, renderHeight)
-                  pdf.save('reportes.pdf')
-                } catch (err) {
-                  // eslint-disable-next-line no-console
-                  console.error('Error generando PDF', err)
-                  // Fallback: abrir diálogo de impresión del navegador
-                  if (typeof window !== 'undefined') window.print()
+              pdf.addImage(imgData, 'PNG', (pageWidth - renderWidth) / 2, 10, renderWidth, renderHeight)
+              pdf.save('reportes.pdf')
+            } catch (err) {
+              // eslint-disable-next-line no-console
+              console.error('Error generando PDF', err)
+              // Fallback: abrir diálogo de impresión del navegador
+              if (typeof window !== 'undefined') window.print()
+            }
+          }}>
+            <FileDown className="mr-2 h-4 w-4" />
+            Exportar PDF
+          </Button>
+          <Button variant="outline" onClick={async () => {
+            // Call server-side export endpoint so the server can stream/format large exports
+            try {
+              const params = new URLSearchParams()
+              params.set('format', 'csv')
+              if (projectFilter && projectFilter !== 'all') params.set('project', projectFilter)
+              if (typeFilter && typeFilter !== 'all') params.set('type', typeFilter)
+              if (date?.from) {
+                const fromIso = date.from.toISOString().slice(0, 10)
+                params.set('from', fromIso)
+                if (date.to) {
+                  const toIso = date.to.toISOString().slice(0, 10)
+                  params.set('to', toIso)
                 }
-            }}>
-                <FileDown className="mr-2 h-4 w-4" />
-                Exportar PDF
-            </Button>
-            <Button variant="outline" onClick={async () => {
-                // Call server-side export endpoint so the server can stream/format large exports
-                try {
-                  const params = new URLSearchParams()
-                  params.set('format', 'csv')
-                  if (projectFilter && projectFilter !== 'all') params.set('project', projectFilter)
-                  if (typeFilter && typeFilter !== 'all') params.set('type', typeFilter)
-                  if (date?.from) {
-                    const fromIso = date.from.toISOString().slice(0,10)
-                    params.set('from', fromIso)
-                    if (date.to) {
-                      const toIso = date.to.toISOString().slice(0,10)
-                      params.set('to', toIso)
-                    }
-                  }
+              }
 
-                  const res = await fetch(`/api/reportes/export?${params.toString()}`)
-                  if (!res.ok) throw new Error(`Export failed: ${res.status}`)
+              const res = await fetch(`/api/reportes/export?${params.toString()}`)
+              if (!res.ok) throw new Error(`Export failed: ${res.status}`)
 
-                  const blob = await res.blob()
-                  const url = URL.createObjectURL(blob)
-                  const disposition = res.headers.get('Content-Disposition') || ''
-                  let filename = 'reportes-incidentes.csv'
-                  const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)/)
-                  if (match && match[1]) filename = decodeURIComponent(match[1])
+              const blob = await res.blob()
+              const url = URL.createObjectURL(blob)
+              const disposition = res.headers.get('Content-Disposition') || ''
+              let filename = 'reportes-incidentes.csv'
+              const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)/)
+              if (match && match[1]) filename = decodeURIComponent(match[1])
 
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = filename
-                  document.body.appendChild(a)
-                  a.click()
-                  a.remove()
-                  setTimeout(() => URL.revokeObjectURL(url), 5000)
-                } catch (err) {
-                  // eslint-disable-next-line no-console
-                  console.error('Error descargando CSV', err)
-                }
-            }}>
-                <FileDown className="mr-2 h-4 w-4" />
-                Exportar CSV
-            </Button>
+              const a = document.createElement('a')
+              a.href = url
+              a.download = filename
+              document.body.appendChild(a)
+              a.click()
+              a.remove()
+              setTimeout(() => URL.revokeObjectURL(url), 5000)
+            } catch (err) {
+              // eslint-disable-next-line no-console
+              console.error('Error descargando CSV', err)
+            }
+          }}>
+            <FileDown className="mr-2 h-4 w-4" />
+            Exportar CSV
+          </Button>
         </div>
       </div>
       <Separator />
 
       <Card>
         <CardHeader>
-            <CardTitle className="flex items-center gap-2"><SlidersHorizontal className="h-5 w-5" />Filtros</CardTitle>
+          <CardTitle className="flex items-center gap-2"><SlidersHorizontal className="h-5 w-5" />Filtros</CardTitle>
         </CardHeader>
         <CardContent className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Select value={projectFilter} onValueChange={(v) => setProjectFilter(v)}>
@@ -159,7 +159,7 @@ export default function ReportsPage() {
             </SelectContent>
           </Select>
 
-           <Popover>
+          <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={"outline"}
@@ -268,7 +268,7 @@ export default function ReportsPage() {
               <ResponsiveContainer>
                 <RechartsPieChart>
                   <Tooltip content={<ChartTooltipContent hideLabel />} />
-                  <Pie data={incidentTypeData.map(d => ({...d, name: d.type}))} dataKey="count" nameKey="type" innerRadius={50} outerRadius={100} paddingAngle={5} cornerRadius={5}>
+                  <Pie data={incidentTypeData.map(d => ({ ...d, name: d.type }))} dataKey="count" nameKey="type" innerRadius={50} outerRadius={100} paddingAngle={5} cornerRadius={5}>
                     {incidentTypeData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={pieChartConfig[entry.type as keyof typeof pieChartConfig]?.color || 'hsl(var(--muted))'} />
                     ))}

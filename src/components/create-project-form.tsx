@@ -52,6 +52,7 @@ type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
 export function CreateProjectForm() {
   const [open, setOpen] = useState(false);
+  const [mapKey, setMapKey] = useState(0);
   const { toast } = useToast();
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
@@ -72,6 +73,14 @@ export function CreateProjectForm() {
     form.setValue('longitude', lng, { shouldValidate: true });
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen) {
+      // Force map to remount when dialog opens
+      setMapKey((prev) => prev + 1);
+    }
+  };
+
   const onSubmit = (data: ProjectFormValues) => {
     console.log('Nuevo proyecto creado:', data);
     toast({
@@ -83,7 +92,7 @@ export function CreateProjectForm() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -211,6 +220,7 @@ export function CreateProjectForm() {
                 <FormLabel className="flex items-center gap-2"><MapPin className="h-4 w-4"/> Ubicación en el Mapa</FormLabel>
                 <div className="h-[400px] w-full rounded-md border overflow-hidden flex-1">
                     <ProjectMap 
+                        key={mapKey}
                         lat={form.watch('latitude')} 
                         lng={form.watch('longitude')} 
                         onMapClick={handleMapClick} 
