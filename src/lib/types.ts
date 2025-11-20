@@ -29,6 +29,7 @@ export type Project = {
   latitude?: number;
   longitude?: number;
   boundary?: { lat: number; lng: number }[];
+  bufferLayer?: any; // To store leaflet layer group
 };
 
 export type Incident = {

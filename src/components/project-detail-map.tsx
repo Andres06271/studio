@@ -53,9 +53,19 @@ interface ProjectDetailMapProps {
   project: Project;
   interactive?: boolean;
   incidents?: Incident[];
+  bufferRadius?: number;
+  onBufferDraw?: () => void;
+  setMapInstance?: (map: L.Map) => void;
 }
 
-export function ProjectDetailMap({ project, interactive = false, incidents = [] }: ProjectDetailMapProps) {
+export function ProjectDetailMap({ 
+    project, 
+    interactive = false, 
+    incidents = [],
+    bufferRadius = 0,
+    onBufferDraw,
+    setMapInstance,
+}: ProjectDetailMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -101,6 +111,10 @@ export function ProjectDetailMap({ project, interactive = false, incidents = [] 
         dragging: interactive,
         zoomControl: interactive,
       });
+
+      if (setMapInstance) {
+          setMapInstance(map);
+      }
 
       const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
@@ -171,6 +185,11 @@ export function ProjectDetailMap({ project, interactive = false, incidents = [] 
         const incidentsLayerGroup = L.layerGroup(incidentMarkers);
         overlayLayers['Incidentes Reportados'] = incidentsLayerGroup.addTo(map);
       }
+
+      // --- Capa de Buffers ---
+      const bufferLayer = L.layerGroup().addTo(map);
+      project.bufferLayer = bufferLayer;
+      overlayLayers['Análisis de Proximidad'] = bufferLayer;
       
 
       if (interactive) {
@@ -208,19 +227,48 @@ export function ProjectDetailMap({ project, interactive = false, incidents = [] 
         }
       };
     }
-  }, [project, interactive, incidents]);
+  }, []);
 
-  // Handle updates if project changes
+  // Handle buffer drawing
   useEffect(() => {
-    if (mapRef.current && project) {
-       const center: L.LatLngExpression = 
-        project.boundary && project.boundary.length > 0 
-        ? new L.Polygon(project.boundary.map(p => [p.lat, p.lng])).getBounds().getCenter()
-        : [project.latitude || 0, project.longitude || 0];
-        
-       mapRef.current.setView(center);
+    const map = mapRef.current;
+    if (!map || !interactive) return;
+
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      if (bufferRadius > 0) {
+        L.circle(e.latlng, {
+          radius: bufferRadius,
+          color: 'hsl(var(--warning))',
+          fillColor: 'hsl(var(--warning))',
+          fillOpacity: 0.2,
+        }).addTo(project.bufferLayer!);
+
+        // Desactivar modo buffer después de dibujar
+        if (onBufferDraw) onBufferDraw();
+        // Quitar el listener para no seguir dibujando
+        map.off('click', handleMapClick);
+        // Reset cursor
+        if (mapContainerRef.current) {
+            mapContainerRef.current.style.cursor = '';
+        }
+      }
+    };
+    
+    if (bufferRadius > 0) {
+      map.on('click', handleMapClick);
+      if (mapContainerRef.current) {
+        mapContainerRef.current.style.cursor = 'crosshair';
+      }
     }
-  }, [project]);
+
+    return () => {
+      map.off('click', handleMapClick);
+      if (mapContainerRef.current) {
+        mapContainerRef.current.style.cursor = '';
+      }
+    };
+
+  }, [bufferRadius, onBufferDraw, interactive, project]);
 
   return <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />;
 }
