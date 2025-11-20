@@ -13,7 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, User, MapPin } from 'lucide-react';
+import { Calendar, User, MapPin, ExternalLink } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -80,16 +80,24 @@ export default function ObraDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="outline" size="icon">
-            <Link href="/obras">
-                <ArrowLeft />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="icon">
+                <Link href="/obras">
+                    <ArrowLeft />
+                </Link>
+            </Button>
+            <div>
+                <h1 className="text-2xl font-bold font-headline">{project.name}</h1>
+                <p className="text-muted-foreground">{project.location}</p>
+            </div>
+        </div>
+        <Button asChild>
+            <Link href={`/obras/${project.id}/sig`}>
+                <ExternalLink className="mr-2 h-4 w-4"/>
+                Ver en Mapa SIG
             </Link>
         </Button>
-        <div>
-            <h1 className="text-2xl font-bold font-headline">{project.name}</h1>
-            <p className="text-muted-foreground">{project.location}</p>
-        </div>
       </div>
 
       <Separator />

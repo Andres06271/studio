@@ -17,9 +17,10 @@ const markerIcon = new L.Icon({
 
 interface ProjectDetailMapProps {
   project: Project;
+  interactive?: boolean;
 }
 
-export function ProjectDetailMap({ project }: ProjectDetailMapProps) {
+export function ProjectDetailMap({ project, interactive = false }: ProjectDetailMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
 
@@ -34,9 +35,9 @@ export function ProjectDetailMap({ project }: ProjectDetailMapProps) {
       const map = L.map(mapContainerRef.current, {
         center: center,
         zoom: 14,
-        scrollWheelZoom: false,
-        dragging: true, // Allow dragging
-        zoomControl: true, // Show zoom control
+        scrollWheelZoom: interactive,
+        dragging: interactive,
+        zoomControl: interactive,
       });
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -56,17 +57,32 @@ export function ProjectDetailMap({ project }: ProjectDetailMapProps) {
       
       mapRef.current = map;
 
-      setTimeout(() => {
-          map.invalidateSize();
-      }, 100);
-    }
+      // Invalidate size to ensure map renders correctly, especially in flexible containers
+      const resizeObserver = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      resizeObserver.observe(mapContainerRef.current);
 
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
-    };
+      return () => {
+        resizeObserver.disconnect();
+        if (mapRef.current) {
+          mapRef.current.remove();
+          mapRef.current = null;
+        }
+      };
+    }
+  }, [project, interactive]);
+
+  // Handle updates if project changes
+  useEffect(() => {
+    if (mapRef.current && project) {
+       const center: L.LatLngExpression = 
+        project.boundary && project.boundary.length > 0 
+        ? new L.Polygon(project.boundary.map(p => [p.lat, p.lng])).getBounds().getCenter()
+        : [project.latitude || 0, project.longitude || 0];
+        
+       mapRef.current.setView(center);
+    }
   }, [project]);
 
   return <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />;
