@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { FileDown, SlidersHorizontal } from 'lucide-react';
 import { incidentTrendData, projectProgressData, incidentTypeData, incidents } from '@/lib/data';
-import { toCsv, downloadFile } from '@/lib/report-utils';
+import { downloadFile } from '@/lib/report-utils';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Pie, Cell } from "recharts"
 import { PieChart as RechartsPieChart } from 'recharts';
@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import type { DateRange } from 'react-day-picker';
+import { useToast } from '@/hooks/use-toast';
 
 const lineChartConfig = {
   incidentes: {
@@ -47,6 +48,55 @@ export default function ReportsPage() {
   const [date, setDate] = useState<DateRange | undefined>();
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const { toast } = useToast();
+
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    try {
+      const params = new URLSearchParams()
+      params.set('format', format)
+      if (projectFilter && projectFilter !== 'all') params.set('project', projectFilter)
+      if (typeFilter && typeFilter !== 'all') params.set('type', typeFilter)
+      if (date?.from) {
+        params.set('from', format(date.from, 'yyyy-MM-dd'))
+        if (date.to) {
+          params.set('to', format(date.to, 'yyyy-MM-dd'))
+        }
+      }
+
+      const res = await fetch(`/api/reportes/export?${params.toString()}`)
+      
+      if (!res.ok) {
+        if (res.status === 501) {
+          toast({ variant: 'destructive', title: 'Error de Exportación', description: 'La generación de PDF no está configurada en el servidor (Puppeteer no encontrado).' })
+        } else {
+          throw new Error(`La exportación falló con estado: ${res.status}`)
+        }
+        return;
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const disposition = res.headers.get('Content-Disposition') || ''
+      let filename = `reportes-incidentes.${format}`
+      const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)/)
+      if (match && match[1]) filename = decodeURIComponent(match[1])
+
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
+      
+      toast({ title: 'Exportación Iniciada', description: `Tu archivo ${filename} se está descargando.`})
+
+    } catch (err) {
+      console.error(`Error descargando ${format.toUpperCase()}`, err)
+      toast({ variant: 'destructive', title: 'Error de red', description: 'No se pudo completar la exportación. Revisa la consola para más detalles.' })
+    }
+  }
+
 
   return (
     <div id="report-root" className="space-y-6">
@@ -58,84 +108,11 @@ export default function ReportsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={async () => {
-            // Client-side PDF generation using html2canvas + jsPDF
-            // Dynamic import to avoid hard dependency at build-time if packages are missing.
-            try {
-              const [html2canvasMod, jsPDFMod] = await Promise.all([
-                import('html2canvas'),
-                import('jspdf')
-              ])
-              const html2canvas = html2canvasMod.default || html2canvasMod
-              const { jsPDF } = jsPDFMod
-
-              const el = document.getElementById('report-root') || document.body
-              const canvas = await html2canvas(el, { scale: 2 })
-              const imgData = canvas.toDataURL('image/png')
-
-              // A4 dimensions in mm
-              const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-              const pageWidth = pdf.internal.pageSize.getWidth()
-              const pageHeight = pdf.internal.pageSize.getHeight()
-
-              // Calculate image dimensions (preserve aspect ratio)
-              const imgProps = (pdf as any).getImageProperties(imgData)
-              const imgWidthMm = (imgProps.width * 25.4) / 96 // px to mm (@96dpi)
-              const imgHeightMm = (imgProps.height * 25.4) / 96
-              const ratio = Math.min(pageWidth / imgWidthMm, pageHeight / imgHeightMm)
-              const renderWidth = imgWidthMm * ratio
-              const renderHeight = imgHeightMm * ratio
-
-              pdf.addImage(imgData, 'PNG', (pageWidth - renderWidth) / 2, 10, renderWidth, renderHeight)
-              pdf.save('reportes.pdf')
-            } catch (err) {
-              // eslint-disable-next-line no-console
-              console.error('Error generando PDF', err)
-              // Fallback: abrir diálogo de impresión del navegador
-              if (typeof window !== 'undefined') window.print()
-            }
-          }}>
+          <Button variant="outline" onClick={() => handleExport('pdf')}>
             <FileDown className="mr-2 h-4 w-4" />
             Exportar PDF
           </Button>
-          <Button variant="outline" onClick={async () => {
-            // Call server-side export endpoint so the server can stream/format large exports
-            try {
-              const params = new URLSearchParams()
-              params.set('format', 'csv')
-              if (projectFilter && projectFilter !== 'all') params.set('project', projectFilter)
-              if (typeFilter && typeFilter !== 'all') params.set('type', typeFilter)
-              if (date?.from) {
-                const fromIso = date.from.toISOString().slice(0, 10)
-                params.set('from', fromIso)
-                if (date.to) {
-                  const toIso = date.to.toISOString().slice(0, 10)
-                  params.set('to', toIso)
-                }
-              }
-
-              const res = await fetch(`/api/reportes/export?${params.toString()}`)
-              if (!res.ok) throw new Error(`Export failed: ${res.status}`)
-
-              const blob = await res.blob()
-              const url = URL.createObjectURL(blob)
-              const disposition = res.headers.get('Content-Disposition') || ''
-              let filename = 'reportes-incidentes.csv'
-              const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";\n]+)/)
-              if (match && match[1]) filename = decodeURIComponent(match[1])
-
-              const a = document.createElement('a')
-              a.href = url
-              a.download = filename
-              document.body.appendChild(a)
-              a.click()
-              a.remove()
-              setTimeout(() => URL.revokeObjectURL(url), 5000)
-            } catch (err) {
-              // eslint-disable-next-line no-console
-              console.error('Error descargando CSV', err)
-            }
-          }}>
+          <Button variant="outline" onClick={() => handleExport('csv')}>
             <FileDown className="mr-2 h-4 w-4" />
             Exportar CSV
           </Button>
@@ -206,7 +183,6 @@ export default function ReportsPage() {
             </SelectContent>
           </Select>
 
-          <Button>Aplicar Filtros</Button>
         </CardContent>
       </Card>
 
