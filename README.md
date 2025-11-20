@@ -1,112 +1,164 @@
+
 # Civisys Risk Manager
 
-Civisys Risk Manager es una plataforma web integral diseñada para la gestión y el control de riesgos en proyectos de ingeniería civil. La aplicación proporciona herramientas visuales y analíticas para monitorear el estado de las obras, registrar incidentes, gestionar documentos y generar reportes detallados.
+Civisys Risk Manager es una plataforma web integral diseñada para la gestión y el control de riesgos en proyectos de ingeniería civil. La aplicación proporciona herramientas visuales y analíticas para monitorear el estado de las obras, registrar incidentes, gestionar documentos y generar reportes detallados, todo desde una interfaz centralizada y moderna.
 
 ![Dashboard](https://picsum.photos/seed/dashboard/1200/600)
 
-## ✨ Funcionalidades Principales
+## 1. Visión del Producto
 
-### 1. **Dashboard Principal**
-Vista centralizada que ofrece una visión general del estado de todos los proyectos a través de:
-- **KPIs (Key Performance Indicators)**: Tarjetas con métricas clave como "Obras Activas", "Incidentes Reportados", y "Obras en Riesgo".
-- **Gráficos Interactivos**:
-  - **Avance de Obras**: Gráfico de barras que muestra el progreso de las obras por zona.
-  - **Distribución de Incidentes**: Gráfico de pastel que clasifica los incidentes por tipo (Deslizamiento, Inundación, etc.).
-  - **Tendencia de Incidentes**: Gráfico de líneas que muestra la evolución de incidentes reportados a lo largo del tiempo.
+### 1.1. Problema a Resolver
 
-### 2. **Gestión de Obras**
-Módulo completo para administrar los proyectos de construcción:
-- **Listado y Creación (CRUD)**: Tabla para visualizar, crear, editar y eliminar obras.
-- **Página de Detalle**: Cada obra tiene una página dedicada que muestra información completa, incluyendo descripción, responsable, fechas, progreso y ubicación en un mapa estático.
-- **Estado y Progreso**: Visualización clara del estado de cada obra (Activo, En Riesgo, Finalizado) y su porcentaje de avance.
+La gestión de proyectos de ingeniería civil a gran escala es inherentemente compleja y está expuesta a una multitud de riesgos (geotécnicos, estructurales, climáticos, etc.). La información crítica suele estar dispersa en múltiples documentos, correos electrónicos y sistemas, lo que dificulta:
+-   Tener una visión clara y en tiempo real del estado de los proyectos.
+-   Identificar y correlacionar incidentes de manera eficiente.
+-   Evaluar rápidamente el impacto de un riesgo en áreas geográficas específicas.
+-   Generar reportes consolidados para la toma de decisiones.
 
-### 3. **Gestión de Incidentes**
-Permite el reporte y seguimiento de eventos adversos en las obras:
-- **Reporte de Incidentes**: Formulario para crear nuevos incidentes, especificando tipo, severidad, descripción y ubicación precisa en un mapa.
-- **Visualización y Filtrado**: Los incidentes se muestran en tarjetas y se pueden filtrar por su estado (`Reportado`, `En revisión`, `Mitigado`).
-- **Cambio de Estado**: Es posible actualizar el estado de un incidente directamente desde la interfaz.
+### 1.2. Usuarios Principales y Valor Central
 
-### 4. **Gestión Documental**
-Sistema centralizado para la documentación de cada proyecto:
-- **Carga de Documentos**: Interfaz para arrastrar y soltar (`drag-and-drop`) o seleccionar archivos para subirlos y asociarlos a una obra específica.
-- **Listado por Obra**: Navegación por carpetas virtuales para ver todos los documentos de un proyecto.
-- **Gestión de Archivos**: Permite descargar y eliminar documentos existentes.
+-   **Ingenieros de Campo y Jefes de Obra**: Necesitan una herramienta ágil para reportar incidentes desde el terreno, consultar documentación técnica (planos, estudios) y visualizar la ubicación exacta de los problemas.
+-   **Gerentes de Proyecto y Directores**: Requieren una visión macro para monitorear el avance de múltiples obras, identificar proyectos en riesgo, analizar tendencias y generar reportes ejecutivos.
+-   **Analistas SIG**: Buscan una plataforma que integre datos tabulares con una representación geoespacial para realizar análisis de proximidad, superposición de capas y mediciones.
 
-### 5. **Visualizador SIG (Mapa Interactivo)**
-Una de las funcionalidades más potentes de la aplicación, ofreciendo un mapa avanzado para cada obra:
-- **Mapa Base Dual**: Control para cambiar la vista del mapa entre **Calles (OpenStreetMap)** y **Satélite (Esri World Imagery)**.
-- **Capas de Datos (Overlays)**:
-  - **Límites del Proyecto**: Visualización del polígono que define el área de la obra.
-  - **Incidentes Georreferenciados**: Marcadores en el mapa para cada incidente, con iconos y colores personalizados según el tipo de riesgo.
-  - **Pop-ups Informativos**: Al hacer clic en un incidente, se muestra un pop-up con detalles como tipo, severidad y descripción.
-- **Herramientas de Análisis SIG**:
-  - **Medición**: Herramienta para medir distancias (metros) y áreas (metros cuadrados) directamente sobre el mapa.
-  - **Análisis de Proximidad (Buffer)**: Funcionalidad para dibujar un círculo con un radio definido por el usuario y analizar qué elementos se encuentran dentro de esa área de influencia.
+El **valor central** de Civisys es **centralizar y visualizar la gestión de riesgos**, transformando datos complejos en información accionable a través de dashboards, mapas interactivos y reportes personalizables.
 
-### 6. **Reportes y Exportación**
-Módulo para el análisis y la exportación de datos:
-- **Panel de Filtros**: Permite filtrar los datos de incidentes por obra, tipo de riesgo y rango de fechas.
-- **Exportación Server-Side**:
-  - **PDF**: Genera y descarga un reporte en formato PDF con los datos filtrados.
-  - **CSV**: Genera y descarga un archivo CSV listo para ser utilizado en hojas de cálculo.
+## 2. Criterios de Aceptación (Alto Nivel)
 
-### 7. **Configuración y Autenticación**
-- **Página de Configuración**: Interfaz para que el usuario gestione su perfil y preferencias de notificación.
-- **Tema Claro y Oscuro**: Botón para cambiar entre los modos de apariencia de la aplicación.
-- **Página de Login**: Interfaz de inicio de sesión para el acceso a la plataforma.
+-   **Dashboard**: Muestra KPIs actualizados y gráficos interactivos sobre el estado general de los proyectos.
+-   **Gestión de Obras**: Un usuario puede crear, ver, editar y eliminar una obra. La página de detalle muestra toda la información relevante, incluyendo un mapa de ubicación.
+-   **Gestión de Incidentes**: Un usuario puede reportar un nuevo incidente, asociarlo a una obra y georreferenciarlo en el mapa. El estado de un incidente puede ser actualizado.
+-   **Visualizador SIG**: El mapa interactivo permite cambiar entre vista de calles y satélite, activar/desactivar capas (límites, incidentes), medir distancias/áreas y realizar análisis de buffer.
+-   **Reportes**: Un usuario puede filtrar datos por múltiples criterios y exportarlos a formatos PDF y CSV desde el servidor.
 
-## 🚀 Tecnologías Utilizadas
+## ✨ 3. Funcionalidades Principales
 
-### Frontend
-- **Framework**: [Next.js](https://nextjs.org/) (con App Router)
-- **Lenguaje**: [TypeScript](https://www.typescriptlang.org/)
-- **UI Kit**: [Shadcn/ui](https://ui.shadcn.com/) - Componentes reutilizables construidos sobre Radix UI.
-- **Estilos**: [Tailwind CSS](https://tailwindcss.com/)
-- **Formularios**: [React Hook Form](https://react-hook-form.com/) con [Zod](https://zod.dev/) para validación.
-- **Mapas**: [Leaflet](https://leafletjs.com/) y [React-Leaflet](https://react-leaflet.js.org/) para la interactividad.
-  - **Plugins de Leaflet**: `leaflet-measure` para herramientas de medición.
-- **Gráficos**: [Recharts](https://recharts.org/)
-- **Iconos**: [Lucide React](https://lucide.dev/)
+### 3.1. Dashboard Principal
+Vista centralizada con KPIs (Obras Activas, Incidentes Reportados) y gráficos interactivos sobre el avance de obras, distribución de incidentes y tendencias a lo largo del tiempo.
 
-### Backend & API
-- **Entorno de Ejecución**: Node.js (a través de Next.js API Routes).
-- **Generación de PDF**: [Puppeteer](https://pptr.dev/) para generar PDFs en el servidor a partir de HTML.
+### 3.2. Gestión de Obras (CRUD)
+Módulo para administrar proyectos, incluyendo detalles, estado, progreso, responsable y ubicación en un mapa estático.
 
-### Estructura del Proyecto
+### 3.3. Gestión de Incidentes
+Formulario para reportar eventos adversos, especificando tipo, severidad y ubicación precisa. Permite el seguimiento y cambio de estado (`Reportado`, `En revisión`, `Mitigado`).
+
+### 3.4. Gestión Documental
+Sistema para cargar, visualizar y gestionar documentos (planos, informes, etc.) asociados a cada obra, con una interfaz de arrastrar y soltar.
+
+### 3.5. Visualizador SIG (Mapa Interactivo)
+Un potente mapa por obra con:
+-   **Control de Capas Base**: Alternar entre OpenStreetMap (Calles) y Esri World Imagery (Satélite).
+-   **Capas de Datos (Overlays)**: Activar y desactivar la visualización de los límites del proyecto y los incidentes.
+-   **Simbología Personalizada**: Iconos y colores distintivos para cada tipo de incidente, con pop-ups informativos al hacer clic.
+-   **Herramientas de Análisis**:
+    -   **Medición**: Medir distancias (m) y áreas (m²).
+    -   **Análisis de Proximidad (Buffer)**: Dibujar un círculo con un radio definido para identificar elementos dentro de un área de influencia.
+
+### 3.6. Reportes y Exportación
+Módulo para filtrar datos y generar exportaciones en formatos **PDF** y **CSV** directamente desde el servidor, asegurando consistencia y rendimiento.
+
+## 🚀 4. Arquitectura y Tecnologías
+
+La elección de tecnologías se centró en crear una aplicación web moderna, escalable y de alto rendimiento, utilizando un ecosistema basado en React y TypeScript.
+
+### 4.1. Stack Tecnológico
+
+| Capa      | Tecnología                                                              | Justificación                                                                                                                               |
+| :-------- | :---------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Framework** | [Next.js](https://nextjs.org/) (App Router)                           | Renderizado del lado del servidor (SSR) para un excelente SEO y rendimiento inicial, junto con un enrutamiento moderno y flexible.           |
+| **Lenguaje**  | [TypeScript](https://www.typescriptlang.org/)                         | Aporta seguridad de tipos, lo que reduce errores en tiempo de ejecución y mejora la mantenibilidad y la experiencia del desarrollador.      |
+| **UI Kit**    | [Shadcn/ui](https://ui.shadcn.com/) sobre Radix UI                      | Proporciona componentes accesibles y no estilizados que son fáciles de personalizar con Tailwind, acelerando el desarrollo de la UI. |
+| **Estilos**   | [Tailwind CSS](https://tailwindcss.com/)                                | Permite crear interfaces complejas y personalizadas rápidamente sin salir del HTML, manteniendo un sistema de diseño coherente.         |
+| **Formularios** | [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) | Para una gestión de formularios performante y una validación de esquemas robusta tanto en el cliente como en el servidor.             |
+| **Mapas**     | [Leaflet](https://leafletjs.com/) + [React-Leaflet](https://react-leaflet.js.org/) | Una librería de mapas de código abierto, ligera y potente, con un ecosistema de plugins maduro (ej. `leaflet-measure`).               |
+| **Gráficos**  | [Recharts](https://recharts.org/)                                     | Componentes de gráficos componibles y sencillos para React, ideales para visualizar datos en el dashboard y los reportes.             |
+| **Iconos**    | [Lucide React](https://lucide.dev/)                                   | Un set de iconos limpio, consistente y altamente personalizable.                                                                          |
+| **PDF Server**| [Puppeteer](https://pptr.dev/)                                        | Para la generación de reportes PDF de alta fidelidad en el servidor, renderizando una plantilla HTML en un navegador headless.          |
+
+### 4.2. Estructura del Proyecto
 ```
 src/
 ├── app/                  # Rutas principales de la aplicación (App Router)
 │   ├── api/              # Endpoints de la API (ej. para exportación)
 │   ├── (rutas)/          # Páginas como /dashboard, /obras, /incidentes, etc.
-│   ├── globals.css       # Estilos globales y variables de tema de Tailwind/Shadcn.
+│   ├── globals.css       # Estilos globales y variables de tema.
 │   └── layout.tsx        # Layout principal de la aplicación.
 ├── components/           # Componentes de React reutilizables
-│   ├── ui/               # Componentes base de Shadcn/ui (Button, Card, etc.).
-│   └── *.tsx             # Componentes específicos de la aplicación (AppShell, UserNav, etc.).
+│   ├── ui/               # Componentes base de Shadcn/ui.
+│   └── *.tsx             # Componentes específicos de la aplicación (AppShell, etc.).
 ├── lib/                  # Librerías auxiliares, tipos y datos
 │   ├── data.ts           # Datos iniciales y mockups.
-│   ├── types.ts          # Definiciones de tipos de TypeScript (Project, Incident).
-│   └── utils.ts          # Funciones de utilidad (ej. cn para clases de Tailwind).
-├── hooks/                # Hooks de React personalizados (ej. use-toast).
+│   ├── types.ts          # Definiciones de tipos de TypeScript.
+│   └── utils.ts          # Funciones de utilidad.
+├── hooks/                # Hooks de React personalizados.
 └── public/               # Archivos estáticos.
 ```
 
-## 🏁 Cómo Empezar
+## 🛠️ 5. Estándares y Prácticas de Código
 
-1.  **Clonar el repositorio:**
-    ```bash
-    git clone https://github.com/[TU_USUARIO]/[NOMBRE_DEL_REPOSITORIO].git
-    cd [NOMBRE_DEL_REPOSITORIO]
-    ```
+-   **Nomenclatura**:
+    -   Componentes: `PascalCase` (ej. `ProjectFormDialog`).
+    -   Variables y Funciones: `camelCase` (ej. `handleProjectCreated`).
+    -   Tipos e Interfaces: `PascalCase` (ej. `type Project = { ... }`).
+    -   Archivos de componentes: `kebab-case` (ej. `app-shell.tsx`).
+-   **Componentes**: Se prioriza la creación de componentes pequeños y reutilizables. Los componentes complejos se dividen en sub-componentes más manejables.
+-   **Manejo de Estado**: El estado local se gestiona con los hooks de React (`useState`, `useEffect`). Para el estado global simple (como el tema), se utiliza `localStorage` y `Context`.
+-   **Estilos**: Se utilizan las utilidades de Tailwind CSS directamente en el JSX. Se evita el CSS personalizado en la medida de lo posible, centralizando las variables de tema en `globals.css`.
+-   **Tipado**: Se utiliza TypeScript de forma estricta. Todos los tipos para las entidades de datos principales (Project, Incident) están centralizados en `src/lib/types.ts`.
 
-2.  **Instalar dependencias:**
+##  UML: Diagrama de Entidades
+
+A continuación, se muestra un diagrama simplificado de las principales entidades de datos y sus relaciones.
+
+```mermaid
+classDiagram
+    class Project {
+        +String id
+        +String name
+        +String location
+        +String status
+        +Number progress
+        +String manager
+        +Date startDate
+        +Date endDate
+        +Incident[] incidents
+        +Document[] documents
+    }
+
+    class Incident {
+        +String id
+        +String type
+        +String severity
+        +Date date
+        +String description
+        +String status
+        +Number latitude
+        +Number longitude
+    }
+
+    class Document {
+        +String id
+        +String name
+        +String description
+        +String uploader
+        +Date uploadDate
+    }
+
+    Project "1" -- "0..*" Incident : "contiene"
+    Project "1" -- "0..*" Document : "contiene"
+```
+
+## 🏁 6. Cómo Empezar
+
+1.  **Instalar dependencias:**
     ```bash
     npm install
     ```
 
-3.  **Ejecutar el servidor de desarrollo:**
+2.  **Ejecutar el servidor de desarrollo:**
     ```bash
     npm run dev
     ```
 
-4.  Abre [http://localhost:9002](http://localhost:9002) en tu navegador para ver la aplicación en funcionamiento.
+3.  Abre [http://localhost:9002](http://localhost:9002) en tu navegador para ver la aplicación en funcionamiento.
+
