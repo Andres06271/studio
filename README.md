@@ -95,8 +95,8 @@ src/
 
 1.  **Clonar el repositorio:**
     ```bash
-    git clone https://github.com/tu-usuario/civisys-risk-manager.git
-    cd civisys-risk-manager
+    git clone https://github.com/[TU_USUARIO]/[NOMBRE_DEL_REPOSITORIO].git
+    cd [NOMBRE_DEL_REPOSITORIO]
     ```
 
 2.  **Instalar dependencias:**
