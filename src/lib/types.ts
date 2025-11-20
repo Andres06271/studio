@@ -5,6 +5,7 @@ export type Document = {
   uploader: string;
   uploadDate: string;
   url: string;
+  project?: string;
 };
 
 export type ProjectTimelineStage = {

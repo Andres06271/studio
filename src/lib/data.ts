@@ -175,7 +175,7 @@ export const initialIncidents: Incident[] = [
 ];
 
 // Documents Data
-export const documents: Document[] = [
+export const initialDocuments: Document[] = [
   {
     id: 'DOC-001',
     name: 'Planos Estructurales v2.pdf',
@@ -183,6 +183,7 @@ export const documents: Document[] = [
     uploader: 'Ana García',
     uploadDate: '2024-03-15',
     url: '#',
+    project: 'Viaducto del Suroeste',
   },
   {
     id: 'DOC-002',
@@ -191,6 +192,7 @@ export const documents: Document[] = [
     uploader: 'Geotecnia SAS',
     uploadDate: '2023-05-20',
     url: '#',
+    project: 'Viaducto del Suroeste',
   },
   {
     id: 'DOC-003',
@@ -199,6 +201,7 @@ export const documents: Document[] = [
     uploader: 'Gestión Ambiental',
     uploadDate: '2022-11-30',
     url: '#',
+    project: 'Autopista al Mar 2',
   },
   {
     id: 'DOC-004',
@@ -207,5 +210,6 @@ export const documents: Document[] = [
     uploader: 'Carlos Ruiz',
     uploadDate: '2024-06-05',
     url: '#',
+    project: 'Túnel de Oriente',
   },
 ];
