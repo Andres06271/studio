@@ -219,12 +219,14 @@ export function CreateProjectForm() {
              <div className="space-y-2 flex flex-col">
                 <FormLabel className="flex items-center gap-2"><MapPin className="h-4 w-4"/> Ubicación en el Mapa</FormLabel>
                 <div className="h-[400px] w-full rounded-md border overflow-hidden flex-1">
-                    <ProjectMap 
-                        key={mapKey}
-                        lat={form.watch('latitude')} 
-                        lng={form.watch('longitude')} 
-                        onMapClick={handleMapClick} 
-                    />
+                    {open && (
+                      <ProjectMap 
+                          key={mapKey}
+                          lat={form.watch('latitude')} 
+                          lng={form.watch('longitude')} 
+                          onMapClick={handleMapClick} 
+                      />
+                    )}
                 </div>
                  <p className="text-xs text-muted-foreground">
                     Haz clic en el mapa para fijar la ubicación de la obra.

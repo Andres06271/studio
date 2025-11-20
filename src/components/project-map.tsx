@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 // Solución para el ícono de marcador que no aparece por defecto con Webpack
 const markerIcon = new L.Icon({
@@ -52,25 +52,27 @@ interface ProjectMapProps {
 }
 
 export function ProjectMap({ lat, lng, onMapClick }: ProjectMapProps) {
-  const [mapKey, setMapKey] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
-    // Force remount of map when component mounts to avoid initialization errors
-    setMapKey((prev) => prev + 1);
-    
+    // Cleanup function to remove any existing map instance
     return () => {
-      // Cleanup on unmount
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+      
+      // Also cleanup any orphaned leaflet containers in the DOM
       const container = containerRef.current;
       if (container) {
-        const mapContainer = container.querySelector('.leaflet-container') as HTMLElement;
-        if (mapContainer && (mapContainer as any)._leaflet_id) {
-          // Remove the Leaflet container properly
-          const map = (mapContainer as any)._leaflet_map;
-          if (map) {
-            map.remove();
+        const leafletContainers = container.querySelectorAll('.leaflet-container');
+        leafletContainers.forEach((element) => {
+          const htmlElement = element as HTMLElement;
+          if ((htmlElement as any)._leaflet_id) {
+            delete (htmlElement as any)._leaflet_id;
           }
-        }
+        });
       }
     };
   }, []);
@@ -78,11 +80,15 @@ export function ProjectMap({ lat, lng, onMapClick }: ProjectMapProps) {
   return (
     <div ref={containerRef} style={{ height: '100%', width: '100%' }}>
       <MapContainer
-        key={mapKey}
         center={[lat, lng]}
         zoom={13}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
+        ref={(map) => {
+          if (map) {
+            mapInstanceRef.current = map;
+          }
+        }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
