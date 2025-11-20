@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { initialProjects } from '@/lib/data';
 
 export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -42,11 +43,8 @@ export default function DocumentsPage() {
       localStorage.setItem('documents', JSON.stringify(initialDocuments));
       setDocuments(initialDocuments);
     }
-    
-    const storedProjects = localStorage.getItem('projects');
-    if (storedProjects) {
-        setProjects(JSON.parse(storedProjects));
-    }
+    // Simplificado para usar los proyectos iniciales en lugar de leer de localStorage
+    setProjects(initialProjects);
   }, []);
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
