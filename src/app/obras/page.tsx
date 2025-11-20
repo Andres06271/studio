@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Table,
@@ -24,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { projects } from '@/lib/data';
+import { initialProjects } from '@/lib/data';
 import type { Project } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
@@ -32,6 +33,24 @@ import { Separator } from '@/components/ui/separator';
 import { CreateProjectForm } from '@/components/create-project-form';
 
 export default function ObrasPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    const storedProjects = localStorage.getItem('projects');
+    if (storedProjects) {
+      setProjects(JSON.parse(storedProjects));
+    } else {
+      localStorage.setItem('projects', JSON.stringify(initialProjects));
+      setProjects(initialProjects);
+    }
+  }, []);
+
+  const handleProjectCreated = (newProject: Project) => {
+    const updatedProjects = [...projects, newProject];
+    setProjects(updatedProjects);
+    localStorage.setItem('projects', JSON.stringify(updatedProjects));
+  };
+
   const getStatusBadgeClass = (status: Project['status']) => {
     switch (status) {
       case 'Activo':
@@ -56,7 +75,7 @@ export default function ObrasPage() {
             Gestiona todos tus proyectos en un solo lugar.
             </p>
         </div>
-        <CreateProjectForm />
+        <CreateProjectForm onProjectCreated={handleProjectCreated} />
       </div>
       <Separator />
 

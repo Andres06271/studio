@@ -25,6 +25,8 @@ export type Project = {
   description: string;
   timeline: ProjectTimelineStage[];
   documents: Document[];
+  latitude?: number;
+  longitude?: number;
 };
 
 export type Incident = {

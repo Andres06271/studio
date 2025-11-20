@@ -34,8 +34,8 @@ export const incidentTrendData = [
 ];
 
 
-// Projects Data
-export const projects: Project[] = [
+// Initial Projects Data for localStorage if not present
+export const initialProjects: Project[] = [
   {
     id: 'OBRA-001',
     name: 'Viaducto del Suroeste',
@@ -197,7 +197,3 @@ export const documents: Document[] = [
     url: '#',
   },
 ];
-
-// Attach documents to a project
-projects[0].documents = [documents[0], documents[1]];
-projects[2].documents = [documents[2]];

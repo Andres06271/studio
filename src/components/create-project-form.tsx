@@ -27,6 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, PlusCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import type { Project } from '@/lib/types';
 
 const ProjectMap = dynamic(() => import('./project-map').then((mod) => mod.ProjectMap), {
   ssr: false,
@@ -50,7 +51,11 @@ const projectFormSchema = z.object({
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
 
-export function CreateProjectForm() {
+interface CreateProjectFormProps {
+  onProjectCreated: (project: Project) => void;
+}
+
+export function CreateProjectForm({ onProjectCreated }: CreateProjectFormProps) {
   const [open, setOpen] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const { toast } = useToast();
@@ -82,7 +87,15 @@ export function CreateProjectForm() {
   };
 
   const onSubmit = (data: ProjectFormValues) => {
-    console.log('Nuevo proyecto creado:', data);
+    const newProject: Project = {
+      ...data,
+      id: `OBRA-${Date.now()}`,
+      status: 'Activo',
+      progress: 0,
+      timeline: [],
+      documents: [],
+    };
+    onProjectCreated(newProject);
     toast({
       title: 'Obra Creada',
       description: `El proyecto "${data.name}" ha sido creado exitosamente.`,
