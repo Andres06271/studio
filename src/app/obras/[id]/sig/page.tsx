@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import type { Project } from '@/lib/types';
+import type { Project, Incident } from '@/lib/types';
+import { initialIncidents } from '@/lib/data';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
@@ -21,15 +22,25 @@ export default function ObraSigPage() {
   const params = useParams();
   const { id } = params;
   const [project, setProject] = useState<Project | null>(null);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (typeof id === 'string') {
+      // Cargar proyecto
       const storedProjects = localStorage.getItem('projects');
       if (storedProjects) {
         const projects: Project[] = JSON.parse(storedProjects);
         const foundProject = projects.find((p) => p.id === id);
         setProject(foundProject || null);
+        
+        if (foundProject) {
+            // Cargar y filtrar incidentes
+            const storedIncidents = localStorage.getItem('incidents');
+            const allIncidents: Incident[] = storedIncidents ? JSON.parse(storedIncidents) : initialIncidents;
+            const projectIncidents = allIncidents.filter(inc => inc.project === foundProject.name);
+            setIncidents(projectIncidents);
+        }
       }
     }
     setLoading(false);
@@ -67,7 +78,7 @@ export default function ObraSigPage() {
                 <p className="text-sm text-muted-foreground">Visualizador SIG</p>
             </div>
         </div>
-      <ProjectDetailMap project={project} interactive={true} />
+      <ProjectDetailMap project={project} incidents={incidents} interactive={true} />
     </div>
   );
 }

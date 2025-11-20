@@ -39,4 +39,6 @@ export type Incident = {
   description: string;
   status: 'Reportado' | 'En revisión' | 'Mitigado';
   project: string;
+  latitude?: number;
+  longitude?: number;
 };
