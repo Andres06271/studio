@@ -56,6 +56,12 @@ export const initialProjects: Project[] = [
       { stage: 'Entrega final', date: '2025-06-30', completed: false },
     ],
     documents: [],
+    boundary: [
+      { lat: 6.248, lng: -75.585 },
+      { lat: 6.245, lng: -75.575 },
+      { lat: 6.240, lng: -75.580 },
+      { lat: 6.243, lng: -75.590 },
+    ]
   },
   {
     id: 'OBRA-002',

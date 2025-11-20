@@ -143,8 +143,8 @@ export default function ObraDetailPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="h-[300px] w-full p-0 rounded-b-lg overflow-hidden">
-              {project.latitude && project.longitude && (
-                <ProjectDetailMap lat={project.latitude} lng={project.longitude} />
+              {project && (
+                <ProjectDetailMap project={project} />
               )}
             </CardContent>
           </Card>

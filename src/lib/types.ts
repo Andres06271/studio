@@ -28,6 +28,7 @@ export type Project = {
   documents: Document[];
   latitude?: number;
   longitude?: number;
+  boundary?: { lat: number; lng: number }[];
 };
 
 export type Incident = {

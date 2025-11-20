@@ -3,6 +3,7 @@
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import type { Project } from '@/lib/types';
 
 const markerIcon = new L.Icon({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -15,38 +16,58 @@ const markerIcon = new L.Icon({
 });
 
 interface ProjectDetailMapProps {
-  lat: number;
-  lng: number;
+  project: Project;
 }
 
-export function ProjectDetailMap({ lat, lng }: ProjectDetailMapProps) {
+export function ProjectDetailMap({ project }: ProjectDetailMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
 
   useEffect(() => {
-    if (mapContainerRef.current && !mapRef.current) {
+    if (mapContainerRef.current && !mapRef.current && project.latitude && project.longitude) {
+      
+      const center: L.LatLngExpression = 
+        project.boundary && project.boundary.length > 0 
+        ? new L.Polygon(project.boundary.map(p => [p.lat, p.lng])).getBounds().getCenter()
+        : [project.latitude, project.longitude];
+
       const map = L.map(mapContainerRef.current, {
-        center: [lat, lng],
+        center: center,
         zoom: 14,
         scrollWheelZoom: false,
-        dragging: false,
-        zoomControl: false,
+        dragging: true, // Allow dragging
+        zoomControl: true, // Show zoom control
       });
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
       }).addTo(map);
 
-      L.marker([lat, lng], { icon: markerIcon }).addTo(map);
+      if (project.boundary && project.boundary.length > 0) {
+        const polygon = L.polygon(project.boundary.map(p => [p.lat, p.lng]), { 
+          color: 'hsl(var(--primary))',
+          fillColor: 'hsl(var(--primary))',
+          fillOpacity: 0.2
+        }).addTo(map);
+        map.fitBounds(polygon.getBounds());
+      } else {
+        L.marker([project.latitude, project.longitude], { icon: markerIcon }).addTo(map);
+      }
       
       mapRef.current = map;
 
-      // Invalidate size to ensure it renders correctly inside flex/grid containers
       setTimeout(() => {
           map.invalidateSize();
       }, 100);
     }
-  }, [lat, lng]);
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [project]);
 
   return <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />;
 }
