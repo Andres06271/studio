@@ -22,7 +22,6 @@ import {
   FolderOpen,
   BarChart3,
   Settings,
-  BrainCircuit,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Icons } from '@/components/icons';
@@ -35,7 +34,6 @@ const navItems = [
   { href: '/incidentes', label: 'Incidentes', icon: AlertOctagon },
   { href: '/documentos', label: 'Documentos', icon: FolderOpen },
   { href: '/reportes', label: 'Reportes', icon: BarChart3 },
-  { href: '/risk-assessment', label: 'Análisis IA', icon: BrainCircuit },
 ];
 
 function AppShellContent({ children }: { children: React.ReactNode }) {
