@@ -1,12 +1,18 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-measure';
+import 'leaflet-measure/dist/leaflet-measure.css';
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import type { Project, Incident } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+// Dynamic import for leaflet-measure to avoid "L is not defined" error
+if (typeof window !== 'undefined') {
+  import('leaflet-measure');
+}
+
 
 // --- Iconos Personalizados ---
 
@@ -171,17 +177,20 @@ export function ProjectDetailMap({ project, interactive = false, incidents = [] 
         L.control.layers(baseMaps, overlayLayers).addTo(map);
         
         // @ts-ignore - leaflet-measure types are not available
-        const measureControl = new L.Control.Measure({
-            position: 'topright',
-            primaryLengthUnit: 'meters',
-            secondaryLengthUnit: 'kilometers',
-            primaryAreaUnit: 'sqmeters',
-            secondaryAreaUnit: 'hectares',
-            activeColor: 'hsl(var(--primary))',
-            completedColor: 'hsl(var(--destructive))',
-            localization: 'es',
-        });
-        measureControl.addTo(map);
+        if (L.Control.Measure) {
+          // @ts-ignore
+          const measureControl = new L.Control.Measure({
+              position: 'topright',
+              primaryLengthUnit: 'meters',
+              secondaryLengthUnit: 'kilometers',
+              primaryAreaUnit: 'sqmeters',
+              secondaryAreaUnit: 'hectares',
+              activeColor: 'hsl(var(--primary))',
+              completedColor: 'hsl(var(--destructive))',
+              localization: 'es',
+          });
+          measureControl.addTo(map);
+        }
       }
       
       mapRef.current = map;
