@@ -77,9 +77,25 @@ export function ProjectDetailMap({ project, interactive = false, incidents = [] 
         zoomControl: interactive,
       });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
-      }).addTo(map);
+      });
+      
+      const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, swisstopo, and the GIS User Community'
+      });
+
+      streetMap.addTo(map); // Añadir la capa de calles por defecto
+
+      const baseMaps = {
+        "Vista de Calles": streetMap,
+        "Vista Satelital": satelliteMap
+      };
+
+      if (interactive) {
+        L.control.layers(baseMaps).addTo(map);
+      }
+
 
       let projectPolygon: L.Polygon | null = null;
       if (project.boundary && project.boundary.length > 0) {
