@@ -1,6 +1,7 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-measure';
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import type { Project, Incident } from '@/lib/types';
@@ -168,6 +169,19 @@ export function ProjectDetailMap({ project, interactive = false, incidents = [] 
 
       if (interactive) {
         L.control.layers(baseMaps, overlayLayers).addTo(map);
+        
+        // @ts-ignore - leaflet-measure types are not available
+        const measureControl = new L.Control.Measure({
+            position: 'topright',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares',
+            activeColor: 'hsl(var(--primary))',
+            completedColor: 'hsl(var(--destructive))',
+            localization: 'es',
+        });
+        measureControl.addTo(map);
       }
       
       mapRef.current = map;

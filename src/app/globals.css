@@ -1,5 +1,7 @@
 /* Leaflet styles */
 @import "leaflet/dist/leaflet.css";
+/* Leaflet Measure styles */
+@import "leaflet-measure/dist/leaflet-measure.css";
 
 @tailwind base;
 @tailwind components;
