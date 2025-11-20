@@ -99,3 +99,39 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Leaflet Measure Control Styles Override */
+@layer components {
+  .leaflet-control-measure {
+    @apply bg-background border-border shadow-md rounded-md;
+  }
+  .leaflet-control-measure .leaflet-control-measure-toggle,
+  .leaflet-control-measure .leaflet-control-measure-toggle:hover {
+    @apply bg-background text-foreground rounded-md border-none;
+    width: 36px;
+    height: 36px;
+  }
+
+  .leaflet-control-measure .leaflet-control-measure-toggle-on,
+  .leaflet-control-measure .leaflet-control-measure-toggle-on:hover {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  .leaflet-control-measure-interaction, .leaflet-measure-result-popup {
+    @apply bg-background text-foreground border-border shadow-lg rounded-md;
+  }
+
+  .leaflet-measure-result-popup a.js-zoom-to,
+  .leaflet-measure-result-popup a.js-delete {
+    @apply text-primary hover:text-primary/80;
+  }
+  
+  .dark .leaflet-control-measure-interaction, 
+  .dark .leaflet-measure-result-popup {
+    @apply bg-popover text-popover-foreground;
+  }
+
+  .leaflet-control.leaflet-control-measure, .leaflet-control-measure-interaction {
+    box-shadow: theme('boxShadow.lg');
+  }
+}
