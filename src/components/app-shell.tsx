@@ -19,7 +19,7 @@ import {
   Home,
   FolderKanban,
   AlertOctagon,
-  FileText,
+  FolderOpen,
   BarChart3,
   Settings,
   BrainCircuit,
@@ -33,7 +33,7 @@ const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/obras', label: 'Obras', icon: FolderKanban },
   { href: '/incidentes', label: 'Incidentes', icon: AlertOctagon },
-  { href: '/documentos', label: 'Documentos', icon: FileText },
+  { href: '/documentos', label: 'Documentos', icon: FolderOpen },
   { href: '/reportes', label: 'Reportes', icon: BarChart3 },
   { href: '/risk-assessment', label: 'Análisis IA', icon: BrainCircuit },
 ];
@@ -60,7 +60,7 @@ function AppShellContent({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton
                   asChild
                   tooltip={item.label}
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href) && (item.href === '/' ? pathname === '/' : true)}
                 >
                   <Link href={item.href}>
                     <item.icon className="h-5 w-5" />
