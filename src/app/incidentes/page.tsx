@@ -1,20 +1,40 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { incidents } from '@/lib/data';
+import { initialIncidents } from '@/lib/data';
 import type { Incident } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { PlusCircle } from 'lucide-react';
+import { IncidentFormDialog } from '@/components/incident-form-dialog';
 
 type FilterStatus = 'Todos' | 'Reportado' | 'En revisión' | 'Mitigado';
 
 export default function IncidentsPage() {
   const [filter, setFilter] = useState<FilterStatus>('Todos');
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  useEffect(() => {
+    const storedIncidents = localStorage.getItem('incidents');
+    if (storedIncidents) {
+      setIncidents(JSON.parse(storedIncidents));
+    } else {
+      localStorage.setItem('incidents', JSON.stringify(initialIncidents));
+      setIncidents(initialIncidents);
+    }
+  }, []);
+
+  const handleIncidentCreated = (newIncident: Incident) => {
+    const updatedIncidents = [...incidents, newIncident];
+    setIncidents(updatedIncidents);
+    localStorage.setItem('incidents', JSON.stringify(updatedIncidents));
+  };
 
   const filteredIncidents =
     filter === 'Todos'
@@ -51,8 +71,18 @@ export default function IncidentsPage() {
             Visualiza y gestiona los incidentes reportados.
             </p>
         </div>
-        <Button>Reportar Nuevo Incidente</Button>
+        <Button onClick={() => setIsFormOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Reportar Nuevo Incidente
+        </Button>
       </div>
+      
+      <IncidentFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onIncidentCreated={handleIncidentCreated}
+      />
+
       <Separator />
 
       <div className="flex items-center gap-2">
@@ -102,6 +132,11 @@ export default function IncidentsPage() {
             </CardContent>
           </Card>
         ))}
+        {filteredIncidents.length === 0 && (
+            <div className="md:col-span-2 lg:col-span-3 text-center text-muted-foreground py-10">
+                No hay incidentes que coincidan con el filtro seleccionado.
+            </div>
+        )}
       </div>
     </div>
   );

@@ -45,6 +45,8 @@ export const initialProjects: Project[] = [
     manager: 'Ana García',
     startDate: '2023-01-15',
     endDate: '2025-06-30',
+    latitude: 6.2442,
+    longitude: -75.5812,
     description: 'Construcción de viaducto para conectar municipios del suroeste antioqueño, optimizando el transporte de carga y pasajeros.',
     timeline: [
       { stage: 'Planeación', date: '2023-02-20', completed: true },
@@ -64,6 +66,8 @@ export const initialProjects: Project[] = [
     manager: 'Carlos Ruiz',
     startDate: '2020-03-10',
     endDate: '2023-12-20',
+    latitude: 6.176,
+    longitude: -75.45,
     description: 'Ampliación y modernización del Túnel de Oriente para mejorar el flujo vehicular entre Medellín y el aeropuerto JMC.',
     timeline: [],
     documents: [],
@@ -77,6 +81,8 @@ export const initialProjects: Project[] = [
     manager: 'Sofia Petro',
     startDate: '2018-05-01',
     endDate: '2026-12-31',
+    latitude: 7.07,
+    longitude: -75.6,
     description: 'Proyecto de generación de energía hidroeléctrica de importancia nacional, con complejidades geológicas y sociales.',
     timeline: [],
     documents: [],
@@ -90,6 +96,8 @@ export const initialProjects: Project[] = [
     manager: 'Luis Mendoza',
     startDate: '2022-08-01',
     endDate: '2027-02-28',
+    latitude: 8.0,
+    longitude: -76.6,
     description: 'Construcción de la segunda calzada de la autopista que conecta Medellín con el Urabá antioqueño.',
     timeline: [],
     documents: [],
@@ -103,6 +111,8 @@ export const initialProjects: Project[] = [
     manager: 'Isabela Díaz',
     startDate: '2015-01-01',
     endDate: '2019-12-20',
+    latitude: 10.95,
+    longitude: -74.78,
     description: 'Diseño y construcción del nuevo Puente Pumarejo sobre el Río Magdalena, uno de los más largos de Colombia.',
     timeline: [],
     documents: [],
@@ -116,6 +126,8 @@ export const initialProjects: Project[] = [
     manager: 'Jorge Valbuena',
     startDate: '2021-10-20',
     endDate: '2028-10-20',
+    latitude: 4.6,
+    longitude: -74.08,
     description: 'Primera línea del metro elevado para la capital de Colombia, un proyecto de infraestructura urbana masiva.',
     timeline: [],
     documents: [],
@@ -123,7 +135,7 @@ export const initialProjects: Project[] = [
 ];
 
 // Incidents Data
-export const incidents: Incident[] = [
+export const initialIncidents: Incident[] = [
   {
     id: 'INC-001',
     type: 'Deslizamiento',
