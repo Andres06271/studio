@@ -3,8 +3,6 @@
 
 Civisys Risk Manager es una plataforma web integral diseñada para la gestión y el control de riesgos en proyectos de ingeniería civil. La aplicación proporciona herramientas visuales y analíticas para monitorear el estado de las obras, registrar incidentes, gestionar documentos y generar reportes detallados, todo desde una interfaz centralizada y moderna.
 
-![Dashboard](https://picsum.photos/seed/dashboard/1200/600)
-
 ## 1. Visión del Producto
 
 ### 1.1. Problema a Resolver
